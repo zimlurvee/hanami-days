@@ -2,6 +2,7 @@ import { WorldBuilder } from './builder'
 import { buildTown } from './town'
 import { buildSchool } from './school'
 import { buildPublic } from './public'
+import { buildDistricts } from './districts'
 
 export const WORLD_HALF = 200
 /** Just inside the school gate, facing south toward the road. */
@@ -15,6 +16,7 @@ export function getWorld(): WorldBuilder {
   const b = new WorldBuilder()
   buildTown(b)
   buildSchool(b)
+  buildDistricts(b) // before buildPublic so its tree scatter avoids the new buildings
   buildPublic(b)
   cached = b
   return b

@@ -6,6 +6,7 @@ import { WorldMesh } from './world/WorldMesh'
 import { WorldColliders } from './world/WorldColliders'
 import { Trees } from './world/Trees'
 import { Water } from './world/Water'
+import { Districts } from './world/Districts'
 import { Environment } from './world/Environment'
 import { PlayerController } from './characters/PlayerController'
 import { attachInput } from './input/input'
@@ -45,6 +46,10 @@ export function GameCanvas() {
           <Trees />
           <Water />
           <WorldColliders />
+          {/* Own boundary so the town is playable while the GLB buildings stream in */}
+          <Suspense fallback={null}>
+            <Districts />
+          </Suspense>
           <PlayerController />
         </Physics>
       </Suspense>

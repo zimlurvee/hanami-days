@@ -13,6 +13,7 @@ export function WorldMesh() {
   const chunks = useMemo(() => {
     const map = new Map<string, BoxDef[]>()
     for (const bx of getWorld().boxes) {
+      if (bx.visible === false) continue // drawn by a GLB model instead
       const key = `${Math.floor(bx.x / CHUNK)}_${Math.floor(bx.z / CHUNK)}`
       let arr = map.get(key)
       if (!arr) map.set(key, (arr = []))

@@ -7,6 +7,7 @@ An original 3D open-world school-town life sandbox for the browser. It takes gam
 ## What works now (Phase 1)
 
 - Large town (400 m x 400 m): Japanese high school (two floors, rooftop, library, cafeteria, labs, teachers' room, gym, playground, gate), residential streets, shops, supermarket, apartments, park, playground, swimming pool, beach, hospital, police station, shrine, bus stops, parking, roads.
+- Two extra districts built from Kenney's CC0 City Kit models (kenney.nl): Sunny Hills Suburb (south-east) and an Industrial District (north-west, off a service road from the main road). Buildings are solid but not enterable.
 - Real collision with Rapier: doors, walls, stairs (auto-step), indoor floors, rooftop access, no invisible walls except the map edge.
 - Third-person character: walk, run, jump, smooth acceleration, idle breathing, running lean, jump pose.
 - Orbit camera: mouse look, wheel zoom, collision pull-in so walls never block the view.
@@ -60,5 +61,7 @@ src/
 docs/ARCHITECTURE.md
 netlify.toml  .env.example
 ```
+
+Third-party assets: only the Kenney CC0 GLB models in `public/models/` (licences included alongside them). Everything else is generated in code.
 
 World layout is plain data generation in `src/game/world/*.ts` (no React), rendered with instanced meshes in 50 m chunks, with colliders created directly on the Rapier world. Add a building by writing a builder function and calling it from `world/index.ts`.

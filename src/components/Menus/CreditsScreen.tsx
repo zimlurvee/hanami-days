@@ -11,6 +11,7 @@ export function CreditsScreen() {
           <li>Inspired in spirit by open-ended school-life sandbox games</li>
           <li>Built with React, Vite, TypeScript, Three.js, React Three Fiber, Rapier and Zustand</li>
           <li>Planned: Supabase for accounts, Colyseus for realtime multiplayer</li>
+          <li>Suburban and industrial buildings: City Kit Suburban and City Kit Industrial by Kenney (kenney.nl), CC0</li>
           <li>Font: M PLUS Rounded 1c (SIL Open Font License)</li>
         </ul>
         <div className="footer-row">

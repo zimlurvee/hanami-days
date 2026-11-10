@@ -17,6 +17,18 @@ export interface BoxDef {
   d: number
   color: number
   collide: boolean
+  /** false = collision / minimap only, drawn by something else (e.g. a GLB model). */
+  visible?: boolean
+}
+
+export interface ModelDef {
+  /** Key into MODEL_BOUNDS, e.g. 'suburban/building-type-a'. */
+  key: string
+  x: number
+  z: number
+  /** Radians around Y. */
+  yaw: number
+  scale: number
 }
 
 export interface ZoneDef {
@@ -53,6 +65,8 @@ export interface SpawnDef {
   yaw: number
 }
 
+import { MODEL_BOUNDS } from './modelBounds'
+
 export type Gap = [number, number]
 
 export const WALL_T = 0.3
@@ -66,6 +80,36 @@ export class WorldBuilder {
   waters: WaterDef[] = []
   trees: TreeDef[] = []
   spawns: SpawnDef[] = []
+  models: ModelDef[] = []
+
+  /**
+   * Place a GLB model. Its collision is one solid box fitted to the model's real
+   * bounds (rotated by yaw), so buildings are solid but not enterable.
+   */
+  model(key: string, x: number, z: number, yaw: number, scale: number, mapColor = 0xb8a89a) {
+    const bd = MODEL_BOUNDS[key]
+    if (!bd) throw new Error(`Unknown model bounds: ${key}`)
+    this.models.push({ key, x, z, yaw, scale })
+    const c = Math.cos(yaw)
+    const s = Math.sin(yaw)
+    let x0 = Infinity
+    let x1 = -Infinity
+    let z0 = Infinity
+    let z1 = -Infinity
+    for (const px of [bd.minX, bd.maxX]) {
+      for (const pz of [bd.minZ, bd.maxZ]) {
+        // three.js rotation.y: x' = x cos + z sin, z' = -x sin + z cos
+        const rx = (px * c + pz * s) * scale
+        const rz = (-px * s + pz * c) * scale
+        x0 = Math.min(x0, rx)
+        x1 = Math.max(x1, rx)
+        z0 = Math.min(z0, rz)
+        z1 = Math.max(z1, rz)
+      }
+    }
+    const h = Math.max(0.5, bd.maxY * scale)
+    this.boxes.push({ x: x + (x0 + x1) / 2, y: 0, z: z + (z0 + z1) / 2, w: x1 - x0, h, d: z1 - z0, color: mapColor, collide: true, visible: false })
+  }
 
   /** Box by centre x/z and bottom y. */
   box(x: number, y: number, z: number, w: number, h: number, d: number, color: number, collide = true) {
