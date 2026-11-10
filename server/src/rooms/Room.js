@@ -1,4 +1,4 @@
-import { DEFAULT_ENV, ROOM, WEATHERS } from '../config.js'
+import { DEFAULT_ENV, POSE_COUNT, PROPS, ROOM, WEATHERS, WORLD } from '../config.js'
 import { randomId } from '../systems/code.js'
 import { applyMove, resetToSpawn } from '../systems/movement.js'
 import { WindowLimiter, clamp, cleanText, cleanWeather, cleanRoomSettings, isNum } from '../systems/validation.js'
@@ -30,6 +30,8 @@ export class Room {
     this.bans = { tokens: new Set(), ips: new Set() }
     this.env = { hour0: DEFAULT_ENV.hour, at: Date.now(), weather: DEFAULT_ENV.weather, dayLength: DEFAULT_ENV.dayLength }
     this.chat = []
+    /** Placed props: { id, kind, x, y, z, yaw, owner } */
+    this.props = []
     this.dirty = false
     this.createdAt = Date.now()
   }
@@ -135,6 +137,8 @@ export class Room {
       budget: 0,
       lastMoveAt: Date.now(),
       lastCorrectAt: 0,
+      pose: 0,
+      propLimiter: new WindowLimiter(8, 5000),
       connected: true,
       conn,
       graceUntil: 0,
@@ -161,6 +165,7 @@ export class Room {
       players: [...this.players.values()].filter((q) => q.connected).map((q) => this.playerView(q)),
       env: this.envState(),
       chat: this.chat,
+      props: this.props,
     })
   }
 
@@ -201,6 +206,10 @@ export class Room {
     }
     if (p.connected) this.broadcast({ t: 'pleft', id, reason })
     if (reason !== 'timeout') this.system(`${p.name} ${reason === 'kicked' ? 'was kicked' : reason === 'banned' ? 'was banned' : 'left'}`)
+    if (this.props.some((q) => q.owner === id)) {
+      this.props = this.props.filter((q) => q.owner !== id)
+      this.broadcast({ t: 'props', props: this.props })
+    }
     if (this.hostId === id) this.pickNewHost()
     this.broadcast({ t: 'room', room: this.info() })
     this.dirty = true
@@ -228,6 +237,7 @@ export class Room {
   handleMove(p, m) {
     const r = applyMove(p, m)
     if (r.ok) {
+      p.pose = Number.isInteger(m.po) && m.po >= 0 && m.po < POSE_COUNT ? m.po : 0
       this.dirty = true
       return
     }
@@ -256,6 +266,44 @@ export class Room {
     p.budget = 30
     p.lastMoveAt = now
     this.dirty = true
+  }
+
+  // ----------------------------------------------------------------- props
+
+  handlePropAdd(p, m) {
+    if (!this.settings.propsAllowed) {
+      this.send(p, { t: 'err', code: 'PROPS_OFF', msg: 'The host turned props off in this room.' })
+      return
+    }
+    if (!PROPS.kinds.includes(m.kind) || ![m.x, m.y, m.z, m.yaw].every(isNum)) return
+    if (Math.abs(m.x) > WORLD.half || Math.abs(m.z) > WORLD.half || m.y < -2 || m.y > 30) return
+    if (!p.propLimiter.allow()) return
+    if (this.props.length >= PROPS.maxPerRoom) {
+      this.send(p, { t: 'err', code: 'PROPS_FULL', msg: 'This room has too many props.' })
+      return
+    }
+    if (this.props.filter((q) => q.owner === p.id).length >= PROPS.maxPerPlayer) {
+      this.send(p, { t: 'err', code: 'PROPS_MINE', msg: `You can place up to ${PROPS.maxPerPlayer} props. Remove one first.` })
+      return
+    }
+    const prop = { id: randomId(4), kind: m.kind, x: +m.x.toFixed(2), y: +m.y.toFixed(2), z: +m.z.toFixed(2), yaw: +m.yaw.toFixed(2), owner: p.id }
+    this.props.push(prop)
+    this.broadcast({ t: 'pa', prop })
+  }
+
+  /** The owner or the host can remove a prop. */
+  handlePropDel(p, id) {
+    const i = this.props.findIndex((q) => q.id === id)
+    if (i < 0) return
+    if (this.props[i].owner !== p.id && p.id !== this.hostId) return
+    this.props.splice(i, 1)
+    this.broadcast({ t: 'pd', id })
+  }
+
+  handlePropClear(p, all) {
+    const mine = all && p.id === this.hostId ? () => true : (q) => q.owner === p.id
+    this.props = this.props.filter((q) => !mine(q))
+    this.broadcast({ t: 'props', props: this.props })
   }
 
   handleAppearance(p, character, size) {
@@ -357,6 +405,7 @@ export class Room {
         +p.speed.toFixed(1),
         p.grounded ? 1 : 0,
         +p.vy.toFixed(1),
+        p.pose,
       ])
     }
     this.broadcast({ t: 's', p: rows }, null, true)

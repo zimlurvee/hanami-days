@@ -3,6 +3,7 @@ import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { useCharacter } from '@/stores/characterStore'
 import { runtime } from '@/game/runtime'
+import { useProps, type Prop, type PropKind } from '@/stores/propsStore'
 
 export interface RoomInfo {
   code: string
@@ -38,7 +39,7 @@ export interface PlayerInfo {
 /** Live position data of another player. Mutated by the network, read every frame by the renderer. */
 export interface Remote extends PlayerInfo {
   x: number; y: number; z: number; yaw: number
-  speed: number; grounded: boolean; vy: number
+  speed: number; grounded: boolean; vy: number; pose: number
   /** Smoothed values actually drawn. */
   dx: number; dy: number; dz: number; dyaw: number
   seen: boolean
@@ -167,6 +168,7 @@ function tryReconnect() {
 function reset() {
   remotes.clear()
   pending.correct = null
+  useProps.getState().set([])
   useNet.setState({ room: null, meId: null, playerIds: [], names: {}, chat: [], status: 'idle' })
 }
 
@@ -196,7 +198,7 @@ function addRemote(p: any) {
   else {
     remotes.set(p.id, {
       id: p.id, name: p.name, character: p.character, size: p.size,
-      x: p.x, y: p.y, z: p.z, yaw: p.yaw, speed: 0, grounded: true, vy: 0,
+      x: p.x, y: p.y, z: p.z, yaw: p.yaw, speed: 0, grounded: true, vy: 0, pose: 0,
       dx: p.x, dy: p.y, dz: p.z, dyaw: p.yaw, seen: false,
     })
   }
@@ -218,6 +220,7 @@ function handle(m: any) {
       useNet.setState({ meId: m.you.id, room: m.room, chat: m.chat ?? [], status: 'online', error: null })
       for (const p of m.players) addRemote(p)
       applyEnv(m.env)
+      useProps.getState().set(m.props ?? [])
       const app = useApp.getState()
       if (app.screen !== 'playing') app.go('playing')
       onFirstReply?.(m); onFirstReply = null
@@ -244,7 +247,7 @@ function handle(m: any) {
         if (row[0] === me) continue
         const r = remotes.get(row[0])
         if (!r) continue
-        r.x = row[1]; r.y = row[2]; r.z = row[3]; r.yaw = row[4]; r.speed = row[5]; r.grounded = row[6] === 1; r.vy = row[7]
+        r.x = row[1]; r.y = row[2]; r.z = row[3]; r.yaw = row[4]; r.speed = row[5]; r.grounded = row[6] === 1; r.vy = row[7]; r.pose = row[8] ?? 0
         if (!r.seen) { r.dx = r.x; r.dy = r.y; r.dz = r.z; r.dyaw = r.yaw; r.seen = true }
       }
       return
@@ -255,6 +258,9 @@ function handle(m: any) {
       return
     }
     case 'env': applyEnv(m.env); return
+    case 'pa': useProps.getState().add(m.prop as Prop); return
+    case 'pd': useProps.getState().remove(m.id); return
+    case 'props': useProps.getState().set(m.props); return
     case 'correct': pending.correct = { x: m.x, y: m.y, z: m.z }; return
     case 'kicked': fullLeave(m.reason, 'multiplayer'); return
     default: return
@@ -295,6 +301,9 @@ export async function fetchRooms() {
   send({ t: 'list' })
 }
 
+export const sendProp = (kind: PropKind, x: number, y: number, z: number, yaw: number) => send({ t: 'prop', kind, x, y, z, yaw })
+export const sendPropDel = (id: string) => send({ t: 'propdel', id })
+export const sendPropClear = (all: boolean) => send({ t: 'propclear', all })
 export const sendChat = (text: string) => send({ t: 'chat', text })
 export const sendRespawn = () => send({ t: 'respawn' })
 
@@ -316,12 +325,12 @@ let lastKey = ''
 export function sendMove(now: number) {
   const p = runtime.player
   const x = +p.x.toFixed(2), y = +p.y.toFixed(2), z = +p.z.toFixed(2), yaw = +p.yaw.toFixed(2), sp = +p.speed.toFixed(1)
-  const key = `${x},${y},${z},${yaw},${sp},${p.grounded}`
+  const key = `${x},${y},${z},${yaw},${sp},${p.grounded},${runtime.pose}`
   if (now - lastSend < 100) return
   if (key === lastKey && now - lastSend < 1000) return
   lastSend = now
   lastKey = key
-  send({ t: 'move', x, y, z, yaw, sp, g: p.grounded ? 1 : 0, vy: 0 })
+  send({ t: 'move', x, y, z, yaw, sp, g: p.grounded ? 1 : 0, vy: 0, po: runtime.pose })
 }
 
 export function inviteLink(code: string) {

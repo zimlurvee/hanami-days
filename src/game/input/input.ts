@@ -2,6 +2,7 @@ import { useSettings, type KeyAction } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
 import { runtime } from '@/game/runtime'
 import { isOnline } from '@/net/net'
+import { putProp } from '@/game/props/props'
 import { isMobile } from '@/stores/deviceStore'
 
 const down = new Set<string>()
@@ -77,6 +78,7 @@ function onKeyDown(e: KeyboardEvent) {
     releasePointer()
     return
   }
+  if (e.code === 'KeyG') putProp()
   down.add(e.code)
   const keys = useSettings.getState().settings.keys
   if (e.code === keys.jump) jumpQueued = true

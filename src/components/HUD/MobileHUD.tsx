@@ -5,6 +5,7 @@ import { useSettings } from '@/stores/settingsStore'
 import { useNet } from '@/net/net'
 import { analog, cycleZoom, lookBy, touchInteract, touchJump } from '@/game/input/input'
 import { Minimap } from './Minimap'
+import { putProp } from '@/game/props/props'
 import { OnlineHUD } from '@/components/Multiplayer/OnlineHUD'
 import { formatHour } from '@/components/Menus/GameMenu'
 
@@ -128,7 +129,7 @@ export function MobileHUD() {
       <Btn cls="round jetpack" label="JETPACK" soon="Jetpack is coming later." />
       <Btn cls="round jump" label="JUMP" onPress={touchJump} />
       <Btn cls="round zoom" label="ZOOM" onPress={cycleZoom} />
-      <Btn cls="round put" label="PUT" soon="Props are coming later." />
+      <Btn cls="round put" label="PUT" onPress={putProp} />
 
       <OnlineHUD />
 

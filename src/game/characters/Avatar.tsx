@@ -12,6 +12,8 @@ export interface AvatarAnim {
   vy: number
   /** Overrides the local player's size setting (used for other players). */
   size?: number
+  /** 0 none, 1 wave, 2 cheer, 3 sit, 4 bow */
+  pose?: number
 }
 
 interface Props {

@@ -27,6 +27,9 @@ interface Rig {
   /** World-space rotation (in model space) that brings each arm from its rest pose down to the side. */
   armDownL: THREE.Quaternion
   armDownR: THREE.Quaternion
+  /** Same idea, but swings each arm up above the head (wave / cheer). */
+  armUpL: THREE.Quaternion
+  armUpR: THREE.Quaternion
 }
 
 const _a = new THREE.Vector3()
@@ -37,6 +40,9 @@ const _qc = new THREE.Quaternion()
 const _qd = new THREE.Quaternion()
 const _qe = new THREE.Quaternion()
 const _qf = new THREE.Quaternion() // arm rotation, kept apart from the scratch values pose() overwrites
+const _qg = new THREE.Quaternion()
+const _qh = new THREE.Quaternion()
+const AXIS_Z = new THREE.Vector3(0, 0, 1)
 const AXIS_X = new THREE.Vector3(1, 0, 0)
 
 function findBone(root: THREE.Object3D, re: RegExp): THREE.Object3D | undefined {
@@ -74,6 +80,8 @@ function buildRig(model: THREE.Object3D, names: BoneNames): Rig {
     upArmR: get(names.upArmR),
     armDownL: new THREE.Quaternion(),
     armDownR: new THREE.Quaternion(),
+    armUpL: new THREE.Quaternion(),
+    armUpR: new THREE.Quaternion(),
   }
 
   // Facing: toes point forward from the ankle
@@ -85,16 +93,18 @@ function buildRig(model: THREE.Object3D, names: BoneNames): Rig {
   }
 
   // Arm-down rotation: from the shoulder->hand direction at rest to "down and slightly out"
-  const armDown = (upper: RigBone | undefined, handRe: RegExp, out: THREE.Quaternion) => {
+  const armTo = (upper: RigBone | undefined, handRe: RegExp, out: THREE.Quaternion, ty: number, tx: number) => {
     const hand = findBone(model, handRe)
     if (!upper || !hand) return
     const from = posInModel(model, hand, _a).clone().sub(posInModel(model, upper.bone, _b)).normalize()
     const outward = Math.sign(from.x) || 1
-    const to = new THREE.Vector3(outward * 0.14, -1, 0).normalize()
+    const to = new THREE.Vector3(outward * tx, ty, 0).normalize()
     out.setFromUnitVectors(from, to)
   }
-  armDown(rig.upArmL, names.handL, rig.armDownL)
-  armDown(rig.upArmR, names.handR, rig.armDownR)
+  armTo(rig.upArmL, names.handL, rig.armDownL, -1, 0.14)
+  armTo(rig.upArmR, names.handR, rig.armDownR, -1, 0.14)
+  armTo(rig.upArmL, names.handL, rig.armUpL, 1, 0.3)
+  armTo(rig.upArmR, names.handR, rig.armUpR, 1, 0.3)
   return rig
 }
 
@@ -115,6 +125,7 @@ function pose(model: THREE.Object3D, b: RigBone | undefined, rotModel: THREE.Qua
 }
 
 const rotX = (angle: number, out: THREE.Quaternion) => out.setFromAxisAngle(AXIS_X, angle)
+const rotZ = (angle: number, out: THREE.Quaternion) => out.setFromAxisAngle(AXIS_Z, angle)
 
 interface Props {
   id: CharacterId
@@ -162,7 +173,7 @@ export function GlbAvatar({ id, anim }: Props) {
 
   // Wrapper turns the model so that it faces +Z, which is what the controller assumes
   const outer = useRef<THREE.Group>(null)
-  const state = useRef({ phase: 0, legSwing: 0, knee: 0, armSwing: 0, armUp: 0, bob: 0 })
+  const state = useRef({ phase: 0, legSwing: 0, knee: 0, armSwing: 0, armUp: 0, bob: 0, drop: 0, pw: 0, poseLast: 0, t: 0 })
 
   useEffect(() => {
     if (outer.current) outer.current.rotation.y = built.rig.forward > 0 ? 0 : Math.PI
@@ -195,23 +206,65 @@ export function GlbAvatar({ id, anim }: Props) {
     s.bob += (bob - s.bob) * k
     const sc = unit * (anim.size ?? useCharacter.getState().size)
     holder.scale.setScalar(sc)
-    holder.position.set(off.x * sc, off.y * sc + s.bob, off.z * sc)
+    holder.position.set(off.x * sc, off.y * sc + s.bob - s.drop, off.z * sc)
 
-    // Legs (forward is +Z in model space when f = 1; a negative X rotation swings a hanging leg forward)
+    // ---- Pose blend (wave / cheer / sit / bow). Moving or jumping cancels it smoothly.
+    const poseId = !moving && anim.grounded ? anim.pose ?? 0 : 0
+    if (poseId) s.poseLast = poseId
+    s.pw += ((poseId ? 1 : 0) - s.pw) * (1 - Math.exp(-9 * dt))
+    s.t += dt
+    const pw = s.pw
+    const pid = s.poseLast
+    const unitSize = sc / unit
+    s.drop = pid === 3 ? pw * 0.46 * (info.height ?? DEFAULT_HEIGHT) * unitSize : 0
+    holder.position.y = off.y * sc + s.bob - s.drop
+    const lerp = (a: number, b: number) => a + (b - a) * pw
+
+    // Walk-cycle targets (forward is +Z in model space when f = 1; a negative X rotation swings a hanging leg forward)
     const air = s.armUp
-    const legL = -f * (s.legSwing * (1 - air) + 0.5 * air)
-    const legR = f * (s.legSwing * (1 - air) - 0.2 * air)
-    pose(model, rig.upLegL, rotX(legL, _qe))
-    pose(model, rig.upLegR, rotX(legR, _qe))
-    // Knees bend the shin backward
-    pose(model, rig.loLegL, rotX(f * (s.knee * (1 - air) + 0.7 * air), _qe))
-    pose(model, rig.loLegR, rotX(f * ((running ? 0.8 : 0.5) * Math.max(0, Math.sin(s.phase + 1.4 + Math.PI)) * (moving ? 1 : 0)), _qe))
-
-    // Arms: lower from the rest pose, swing opposite the legs, raise in the air
+    let legL = -f * (s.legSwing * (1 - air) + 0.5 * air)
+    let legR = f * (s.legSwing * (1 - air) - 0.2 * air)
+    let kneeL = f * (s.knee * (1 - air) + 0.7 * air)
+    let kneeR = f * ((running ? 0.8 : 0.5) * Math.max(0, Math.sin(s.phase + 1.4 + Math.PI)) * (moving ? 1 : 0))
     const swingL = f * s.armSwing * (1 - air) - f * 2.3 * air
     const swingR = -f * s.armSwing * (1 - air) - f * 2.3 * air
-    pose(model, rig.upArmL, _qf.copy(rotX(swingL, _qe)).multiply(rig.armDownL))
-    pose(model, rig.upArmR, _qf.copy(rotX(swingR, _qe)).multiply(rig.armDownR))
+    _qf.copy(rotX(swingL, _qe)).multiply(rig.armDownL)
+    _qg.copy(rotX(swingR, _qe)).multiply(rig.armDownR)
+
+    // Pose overrides, blended in by pw
+    let bow = 0
+    if (pid === 3) {
+      legL = lerp(legL, -f * 1.45)
+      legR = lerp(legR, -f * 1.45)
+      kneeL = lerp(kneeL, f * 0.12)
+      kneeR = lerp(kneeR, f * 0.12)
+      _qh.copy(rotX(-f * 0.5, _qe)).multiply(rig.armDownL)
+      _qf.slerp(_qh, pw)
+      _qh.copy(rotX(-f * 0.5, _qe)).multiply(rig.armDownR)
+      _qg.slerp(_qh, pw)
+    } else if (pid === 4) {
+      bow = pw * 0.95
+    } else if (pid === 1) {
+      // Right arm up, waving from side to side
+      _qh.copy(rotZ(Math.sin(s.t * 9) * 0.4, _qe)).multiply(rig.armUpR)
+      _qg.slerp(_qh, pw)
+    } else if (pid === 2) {
+      const sway = Math.sin(s.t * 7) * 0.18
+      _qh.copy(rotZ(sway, _qe)).multiply(rig.armUpL)
+      _qf.slerp(_qh, pw)
+      _qh.copy(rotZ(-sway, _qe)).multiply(rig.armUpR)
+      _qg.slerp(_qh, pw)
+    }
+
+    // Hips tilt forward for a bow; legs and arms cancel part of it so they stay natural
+    pose(model, rig.hips, rotX(f * bow, _qe))
+    pose(model, rig.upLegL, rotX(legL - f * bow, _qe))
+    pose(model, rig.upLegR, rotX(legR - f * bow, _qe))
+    pose(model, rig.loLegL, rotX(kneeL, _qe))
+    pose(model, rig.loLegR, rotX(kneeR, _qe))
+    // Quaternions pose() scribbles on are _qa.._qe, so _qf / _qg survive
+    pose(model, rig.upArmL, _qf.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
+    pose(model, rig.upArmR, _qg.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
   })
 
   return (

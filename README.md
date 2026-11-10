@@ -81,4 +81,4 @@ Players just type a username, then Quick Join, Create Room, Join by Code, or ope
 - First launch asks PC or Mobile. Mobile shows touch controls laid out like the original game. Change it in Settings.
 - **Character Option** (main menu) picks your character before playing.
 - In game, **Menu** has Area Move (teleport), Character Change, Weather and Status. **Chara Edit** is the in-game side panel (Camera/Effect, Chara Edit, Pose mode, Item, Hide), like the original's mechanic.
-- Not built yet: Props, Pose mode, Items, missions, combat.
+- Props (place chairs, tables, benches, boxes, balls, plants, cake, parasol; synced in rooms) and Pose mode (wave, cheer, sit, bow) are built. Not built yet: Items, Language, missions, combat.

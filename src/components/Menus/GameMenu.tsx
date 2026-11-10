@@ -6,6 +6,8 @@ import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { AREAS } from '@/game/world/areas'
 import { runtime } from '@/game/runtime'
+import { useProps, PROP_KINDS, MAX_PROPS_PER_PLAYER } from '@/stores/propsStore'
+import { canRemove, clearMyProps, myId, putProp, removeProp } from '@/game/props/props'
 import { hostAction, inviteLink, leaveRoom, teleportTo, useNet } from '@/net/net'
 
 const WEATHERS: { id: Weather; label: string }[] = [
@@ -41,6 +43,9 @@ export function GameMenu() {
   const meId = useNet((s) => s.meId)
   const names = useNet((s) => s.names)
   const [page, setPage] = useState<Page>('home')
+  const props = useProps((s) => s.props)
+  const selectedProp = useProps((s) => s.selected)
+  const selectProp = useProps((s) => s.select)
 
   const isHost = !!room && room.hostId === meId
   const canWorld = !room || isHost
@@ -111,7 +116,25 @@ export function GameMenu() {
         {page === 'props' && (
           <div className="box">
             <div className="boxtitle">Props</div>
-            <p className="sub">Placing props (chairs, food, bags and more) is the next mechanic to be built. It will sync to everyone in a room.</p>
+            <p className="sub">Pick a prop, then press <b>PUT</b> (mobile) or <b>G</b> (PC) to place it in front of you. Up to {MAX_PROPS_PER_PLAYER} each. {room ? 'Everyone in the room sees them, and they disappear when you leave.' : ''}</p>
+            <div className="agrid">
+              {PROP_KINDS.map((k) => (
+                <button key={k.id} className={`abtn ${selectedProp === k.id ? 'on' : ''}`} onClick={() => selectProp(k.id)}>{k.icon} {k.label}</button>
+              ))}
+            </div>
+            <div className="menu-list" style={{ marginTop: 10 }}>
+              <button className="btn small primary" onClick={() => { putProp(); close() }}>Put {PROP_KINDS.find((k) => k.id === selectedProp)?.label.toLowerCase()} here</button>
+            </div>
+            <div className="plist" style={{ marginTop: 8 }}>
+              {props.filter((p) => p.owner === myId() || (isHost && room)).map((p) => (
+                <div className="row" key={p.id}>
+                  <span>{PROP_KINDS.find((k) => k.id === p.kind)?.icon} {p.kind}{p.owner !== myId() ? ' (other player)' : ''}</span>
+                  {canRemove(p.owner) && <button className="btn small" onClick={() => removeProp(p.id)}>Remove</button>}
+                </div>
+              ))}
+              {props.length === 0 && <p className="sub">No props placed yet.</p>}
+            </div>
+            {props.some((p) => p.owner === myId()) && <button className="btn small" onClick={() => clearMyProps(false)}>Remove all mine</button>}
           </div>
         )}
 

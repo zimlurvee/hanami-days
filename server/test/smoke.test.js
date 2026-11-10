@@ -120,6 +120,31 @@ f.send({ t: 'tp', x: 150, y: 0.5, z: 0 }); await sleep(100)
 f.send({ t: 'move', x: 150.5, y: 0.5, z: 0, yaw: 0, sp: 1, g: 1, vy: 0 }); await sleep(100)
 assert.ok(!f.msgs.some((m) => m.t === 'correct')); ok('teleport accepted, next move not rejected')
 
+// props + pose
+const g = client('G'); await g.open
+g.send({ t: 'create', name: 'Gus', room: { name: 'Props', isPublic: false } }); const jg = await g.next('joined')
+const g2 = client('G2'); await g2.open
+g2.send({ t: 'join', code: jg.room.code, name: 'Gia' }); const jg2 = await g2.next('joined')
+assert.deepEqual(jg2.props, [])
+g.send({ t: 'prop', kind: 'chair', x: -58, y: 0.05, z: -46, yaw: 1 })
+const pa = await g2.next('pa'); assert.equal(pa.prop.kind, 'chair'); ok('prop placed and synced')
+g.send({ t: 'prop', kind: 'dragon', x: 0, y: 0, z: 0, yaw: 0 }); await sleep(80)
+g.send({ t: 'prop', kind: 'box', x: 9999, y: 0, z: 0, yaw: 0 }); await sleep(80)
+assert.equal(srv.mgr.find(jg.room.code).props.length, 1); ok('bad props rejected')
+g2.send({ t: 'propdel', id: pa.prop.id }); await sleep(80)
+assert.equal(srv.mgr.find(jg.room.code).props.length, 1); ok('non-owner cannot delete')
+g.send({ t: 'propdel', id: pa.prop.id }); await g2.next('pd'); ok('owner deletes prop')
+for (let i = 0; i < 8; i++) { g.send({ t: 'prop', kind: 'ball', x: i, y: 0, z: 0, yaw: 0 }); await sleep(30) }
+await sleep(100)
+assert.ok(srv.mgr.find(jg.room.code).props.length <= 8); ok('prop rate limited')
+g.send({ t: 'move', x: jg.players[0].x, y: jg.players[0].y, z: jg.players[0].z, yaw: 0, sp: 0, g: 1, vy: 0, po: 3 })
+await sleep(120)
+srv.mgr.find(jg.room.code).tick()
+const snap = [...g2.msgs].reverse().find((m) => m.t === 's' && m.p.some((r) => r[0] === jg.you.id))
+assert.equal(snap.p.find((r) => r[0] === jg.you.id)[8], 3); ok('pose synced in snapshots')
+g.send({ t: 'leave' }); await sleep(100)
+assert.equal(srv.mgr.find(jg.room.code).props.length, 0); ok('props removed when owner leaves')
+
 // health
 const h = await (await fetch(`http://localhost:${srv.port}/health`)).json()
 assert.equal(h.ok, true); ok('health endpoint')

@@ -27,6 +27,14 @@ export const ROOM = {
   chatHistory: 30,
 }
 
+export const PROPS = {
+  kinds: ['chair', 'table', 'bench', 'box', 'ball', 'plant', 'cake', 'parasol'],
+  maxPerRoom: 60,
+  maxPerPlayer: 10,
+}
+/** Pose ids sent by clients: 0 = none, 1 wave, 2 cheer, 3 sit, 4 bow. */
+export const POSE_COUNT = 5
+
 export const PLAYER = { nameMax: 20, sizeMin: 0.7, sizeMax: 1.3 }
 
 export const WORLD = {

@@ -76,6 +76,9 @@ export function dispatch(mgr, conn, msg) {
     case 'move': room.handleMove(player, msg); break
     case 'chat': room.handleChat(player, msg.text); break
     case 'appearance': room.handleAppearance(player, cleanCharacter(msg.character), cleanSize(msg.size)); break
+    case 'prop': room.handlePropAdd(player, msg); break
+    case 'propdel': room.handlePropDel(player, String(msg.id)); break
+    case 'propclear': room.handlePropClear(player, !!msg.all); break
     case 'respawn': room.handleRespawn(player); break
     case 'tp': room.handleTeleport(player, msg); break
     case 'host': room.handleHost(player, msg); break

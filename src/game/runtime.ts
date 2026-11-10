@@ -7,6 +7,8 @@ export const runtime = {
   /** Camera orbit angles, radians. yaw 0 looks along -Z. */
   cam: { yaw: 0, pitch: 0.35, zoom: 1 },
   /** Set by the controller each frame; HUD polls it at low frequency. */
+  /** Active pose (0 none, 1 wave, 2 cheer, 3 sit, 4 bow). Cancelled by moving. */
+  pose: 0,
   nearby: null as null | { label: string; key: string },
   locationName: 'Town Square',
 }

@@ -3,6 +3,16 @@ import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { runtime } from '@/game/runtime'
 import { useState } from 'react'
+import { useProps, PROP_KINDS } from '@/stores/propsStore'
+import { putProp } from '@/game/props/props'
+
+const POSES = [
+  { id: 1, label: '👋 Wave' },
+  { id: 2, label: '🙌 Cheer' },
+  { id: 3, label: '🧘 Sit' },
+  { id: 4, label: '🙇 Bow' },
+  { id: 0, label: '✕ Stop' },
+]
 
 const TABS: { id: CharaTab; label: string }[] = [
   { id: 'camera', label: 'Camera, Effect' },
@@ -25,6 +35,7 @@ export function CharaEditPanel() {
   const size = useCharacter((s) => s.size)
   const setSize = useCharacter((s) => s.setSize)
   const [zoom, setZoom] = useState(runtime.cam.zoom)
+  const [pose, setPose] = useState(runtime.pose)
   if (!tab) return null
 
   return (
@@ -75,8 +86,18 @@ export function CharaEditPanel() {
           </>
         )}
 
-        {tab === 'pose' && <p className="sub">Pose mode (sit, wave, peace sign and more) is the next mechanic to be built.</p>}
-        {tab === 'item' && <p className="sub">Items you can hold and wear (bags, food, accessories) are planned together with Props.</p>}
+        {tab === 'pose' && (
+          <>
+            <div className="boxtitle">Pose mode</div>
+            <div className="agrid c3">
+              {POSES.map((po) => (
+                <button key={po.id} className={`abtn ${pose === po.id ? 'on' : ''}`} onClick={() => { runtime.pose = po.id; setPose(po.id) }}>{po.label}</button>
+              ))}
+            </div>
+            <p className="sub">Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. Poses work on the School Girl and OC; the Student only stands.</p>
+          </>
+        )}
+        {tab === 'item' && <p className="sub">Items you can hold and wear (bags, food, accessories) are planned. For objects to place in the world, see Menu → Props.</p>}
       </div>
     </aside>
   )

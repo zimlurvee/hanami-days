@@ -52,7 +52,7 @@ export function HUD() {
 
       <div className="chip bl">
         <div><kbd>{keyName(keys.forward)}</kbd><kbd>{keyName(keys.left)}</kbd><kbd>{keyName(keys.back)}</kbd><kbd>{keyName(keys.right)}</kbd> Move &nbsp; <kbd>{keyName(keys.run)}</kbd> Run</div>
-        <div><kbd>{keyName(keys.jump)}</kbd> Jump &nbsp; <kbd>Mouse</kbd> Look &nbsp; <kbd>Wheel</kbd> Zoom &nbsp; <kbd>Esc</kbd> Menu</div>
+        <div><kbd>{keyName(keys.jump)}</kbd> Jump &nbsp; <kbd>Mouse</kbd> Look &nbsp; <kbd>Wheel</kbd> Zoom &nbsp; <kbd>G</kbd> Put prop &nbsp; <kbd>Esc</kbd> Menu</div>
       </div>
 
       <OnlineHUD />

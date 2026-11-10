@@ -38,6 +38,7 @@ function RemotePlayer({ id }: { id: string }) {
     anim.grounded = r.grounded
     anim.vy = r.vy
     anim.size = r.size
+    anim.pose = r.pose
   })
 
   if (!info) return null

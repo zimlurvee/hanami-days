@@ -159,6 +159,9 @@ export function PlayerController() {
         s.facing += diff * (1 - Math.exp(-14 * dt))
       }
 
+      // Moving or jumping ends a pose
+      if (runtime.pose && (sp > 0.5 || !s.grounded)) runtime.pose = 0
+      anim.pose = runtime.pose
       anim.speed = sp
       anim.grounded = s.grounded
       anim.vy = s.vy
