@@ -1,21 +1,23 @@
 import { useApp } from '@/stores/appStore'
-import { useCharacter } from '@/stores/characterStore'
+import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 
 /**
- * First version of Character Edit: pick which character you play as. It changes
+ * First version of Character Option: pick which character you play as. It changes
  * the real 3D model in game. Hair, outfit and colour editing arrive next, and
- * saving to an account comes with Supabase.
+ * saved slots are stored on this device (no account needed).
  */
 export function CharacterSelect() {
   const go = useApp((s) => s.go)
   const model = useCharacter((s) => s.model)
   const setModel = useCharacter((s) => s.setModel)
+  const size = useCharacter((s) => s.size)
+  const setSize = useCharacter((s) => s.setSize)
 
   return (
     <div className="screen">
       <div className="panel wide">
-        <h2>Character Edit</h2>
+        <h2>Character Option</h2>
         <p className="sub">Choose who you play as. Your choice is remembered on this device.</p>
 
         <div className="char-grid" role="radiogroup" aria-label="Character">
@@ -35,8 +37,16 @@ export function CharacterSelect() {
           ))}
         </div>
 
+        <div className="row" style={{ marginTop: 14 }}>
+          <label className="lbl">Size<span className="desc">Make your character smaller or taller</span></label>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input type="range" min={SIZE_MIN} max={SIZE_MAX} step={0.05} value={size} onChange={(e) => setSize(Number(e.target.value))} aria-label="Character size" />
+            <span className="val">{Math.round(size * 100)}%</span>
+          </span>
+        </div>
+
         <p className="sub" style={{ marginTop: 16 }}>
-          Coming next: hair, face, outfit and colour editing, plus saved character slots on your account.
+          Hair, face, outfit and colour editing will be added to Chara Edit, which you open from the in-game menu.
         </p>
 
         <div className="footer-row">

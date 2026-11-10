@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { useWorld } from '@/stores/worldStore'
 import { useSettings } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
+import { useNet } from '@/net/net'
 import { runtime } from '@/game/runtime'
 import { newSkyState, skyAt, sunDirection } from './lighting'
 
@@ -37,7 +38,7 @@ export function Environment() {
     const w = useWorld.getState()
 
     // Advance the clock (frozen while paused)
-    if (!app.paused && w.dayLengthSeconds > 0) {
+    if ((!app.paused || useNet.getState().room) && w.dayLengthSeconds > 0) {
       const next = w.hour + (dt * 24) / w.dayLengthSeconds
       useWorld.setState({ hour: next >= 24 ? next - 24 : next })
     }

@@ -10,6 +10,8 @@ export interface AvatarAnim {
   grounded: boolean
   /** Vertical velocity, used to pose arms/legs in the air. */
   vy: number
+  /** Overrides the local player's size setting (used for other players). */
+  size?: number
 }
 
 interface Props {

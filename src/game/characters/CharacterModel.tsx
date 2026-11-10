@@ -18,10 +18,15 @@ class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   }
 }
 
-/** The local player's visible body, chosen in Character Edit or the pause menu. */
+/** The local player's visible body, chosen in Character Option or the pause menu. */
 export function CharacterModel({ anim }: { anim: AvatarAnim }) {
   const id = useCharacter((s) => s.model)
-  const builtIn = <Avatar appearance={DEFAULT_APPEARANCE} anim={anim} />
+  const size = useCharacter((s) => s.size)
+  const builtIn = (
+    <group scale={size}>
+      <Avatar appearance={DEFAULT_APPEARANCE} anim={anim} />
+    </group>
+  )
   if (id === 'student') return builtIn
   return (
     <ModelBoundary key={id} fallback={builtIn}>

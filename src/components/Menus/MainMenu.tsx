@@ -21,13 +21,10 @@ export function MainMenu() {
             <span className="ico">🌐</span> Multiplayer
           </button>
           <button className="btn" onClick={() => go('characterEdit')}>
-            <span className="ico">👗</span> Character Edit
+            <span className="ico">👗</span> Character Option
           </button>
           <button className="btn" onClick={() => openSettings('menu')}>
             <span className="ico">⚙</span> Settings
-          </button>
-          <button className="btn" onClick={() => go('profile')}>
-            <span className="ico">🙂</span> Profile
           </button>
           <button className="btn" onClick={() => go('credits')}>
             <span className="ico">✿</span> Credits

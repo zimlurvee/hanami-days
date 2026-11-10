@@ -10,8 +10,8 @@ Original title: **Hanami Days Online**. A 3D multiplayer life simulation set in 
 | 3D | Three.js via React Three Fiber, drei | World, characters, camera, lighting |
 | Physics | Rapier (`@react-three/rapier`) | Player collision, ground detection, stairs, vehicles (Phase 5) |
 | Client state | Zustand | App screen, settings, world settings, HUD state |
-| Accounts and data | Supabase (Auth + Postgres + Storage) | Profiles, character slots, settings, saved rooms, favourites |
-| Realtime | Colyseus on an external host | Rooms, player state, props, chat, host permissions, NPC sim |
+| Accounts | None. Players enter a username only | Settings and character saved in the browser |
+| Realtime | Node + `ws` server (`server/`) on an external host | Rooms, player state, props, chat, host permissions, NPC sim |
 | Hosting | Netlify (frontend only) | Static build and SPA redirects |
 
 Netlify never hosts the multiplayer server. Functions are stateless and short-lived, so they cannot hold WebSocket sessions. The Colyseus server runs on a host with long-lived processes (Fly.io, Railway, Render or a VPS). The frontend reads its URL from `VITE_COLYSEUS_URL`.
@@ -20,8 +20,7 @@ Netlify never hosts the multiplayer server. Functions are stateless and short-li
 
 ```
 Browser (React + R3F)
-  |-- HTTPS --> Supabase (auth, profile, character slots, settings)
-  |-- WSS ----> Colyseus server (room state, chat, props, NPC sim)
+  |-- WSS ----> Node ws server (room state, chat, props, NPC sim)
 Netlify serves the static bundle only.
 ```
 

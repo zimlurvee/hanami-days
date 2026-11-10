@@ -4,7 +4,8 @@ import { runtime } from '@/game/runtime'
 import { useWorld } from '@/stores/worldStore'
 import { useSettings } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
-import { formatHour } from '@/components/Menus/PauseMenu'
+import { OnlineHUD } from '@/components/Multiplayer/OnlineHUD'
+import { formatHour } from '@/components/Menus/GameMenu'
 
 const WEATHER_ICON = { sunny: '☀', cloudy: '☁', rainy: '🌧' } as const
 
@@ -18,6 +19,7 @@ export function HUD() {
   const showMap = useSettings((s) => s.settings.showMinimap)
   const keys = useSettings((s) => s.settings.keys)
   const paused = useApp((s) => s.paused)
+  const chatOpen = useApp((s) => s.chatOpen)
 
   // Poll the mutable runtime a few times a second instead of re-rendering per frame
   useEffect(() => {
@@ -50,10 +52,12 @@ export function HUD() {
 
       <div className="chip bl">
         <div><kbd>{keyName(keys.forward)}</kbd><kbd>{keyName(keys.left)}</kbd><kbd>{keyName(keys.back)}</kbd><kbd>{keyName(keys.right)}</kbd> Move &nbsp; <kbd>{keyName(keys.run)}</kbd> Run</div>
-        <div><kbd>{keyName(keys.jump)}</kbd> Jump &nbsp; <kbd>Mouse</kbd> Look &nbsp; <kbd>Wheel</kbd> Zoom &nbsp; <kbd>Esc</kbd> Pause</div>
+        <div><kbd>{keyName(keys.jump)}</kbd> Jump &nbsp; <kbd>Mouse</kbd> Look &nbsp; <kbd>Wheel</kbd> Zoom &nbsp; <kbd>Esc</kbd> Menu</div>
       </div>
 
-      {!locked && !paused && <div className="chip bc">Click the game to capture the mouse</div>}
+      <OnlineHUD />
+
+      {!locked && !paused && !chatOpen && !useApp.getState().charaEdit && <div className="chip bc">Click the game to capture the mouse</div>}
     </div>
   )
 }

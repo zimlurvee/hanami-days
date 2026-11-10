@@ -19,13 +19,12 @@ An original 3D open-world school-town life sandbox for the browser. It takes gam
 
 | Feature | Phase |
 |---|---|
-| Character editor, save slots, accounts (Supabase) | 2 |
+| Character editor, save slots (stored on the device, no accounts) | 2 |
 | NPCs, dialogue, interactions, props | 3 |
 | Multiplayer server, rooms, codes, chat, host tools | 4 |
 | Vehicles, rain particles, more locations / interiors | 5 |
 | Audio, language, post-processing, performance pass | 6 |
 
-The Multiplayer, Character Edit and Profile buttons open a screen that says what they are waiting on rather than pretending to work.
 
 ## Run locally
 
@@ -71,3 +70,15 @@ netlify.toml  .env.example
 The CC-BY credits are also shown in the in-game Credits screen, as the licence requires. Everything else is generated in code.
 
 World layout is plain data generation in `src/game/world/*.ts` (no React), rendered with instanced meshes in 50 m chunks, with colliders created directly on the Rapier world. Add a building by writing a builder function and calling it from `world/index.ts`.
+
+
+## Multiplayer (no accounts)
+
+Players just type a username, then Quick Join, Create Room, Join by Code, or open a public room. Rooms are temporary. The server lives in `server/` and must be deployed separately from Netlify: see `server/README.md`. Then set `VITE_SERVER_URL` in Netlify.
+
+## Controls and menus
+
+- First launch asks PC or Mobile. Mobile shows touch controls laid out like the original game. Change it in Settings.
+- **Character Option** (main menu) picks your character before playing.
+- In game, **Menu** has Area Move (teleport), Character Change, Weather and Status. **Chara Edit** is the in-game side panel (Camera/Effect, Chara Edit, Pose mode, Item, Hide), like the original's mechanic.
+- Not built yet: Props, Pose mode, Items, missions, combat.

@@ -4,11 +4,12 @@ import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type Rapier
 import * as THREE from 'three'
 import type { AvatarAnim } from './Avatar'
 import { CharacterModel } from './CharacterModel'
-import { isDown, consumeJump } from '@/game/input/input'
+import { analog, isDown, consumeJump } from '@/game/input/input'
 import { updateThirdPersonCamera } from '@/game/camera/thirdPerson'
 import { runtime } from '@/game/runtime'
 import { PLAYER_SPAWN, locationAt } from '@/game/world'
 import { useApp, isGameActive } from '@/stores/appStore'
+import { isOnline, pending, sendMove, sendRespawn } from '@/net/net'
 
 const WALK = 3.4
 const RUN = 6.6
@@ -79,21 +80,31 @@ export function PlayerController() {
     if (!b || !col || !kcc) return
     const dt = Math.min(rawDt, 1 / 20)
     const s = sim.current
-    const paused = useApp.getState().paused
+    const menuOpen = useApp.getState().paused
+    const online = isOnline()
 
-    if (!paused) {
+    // In a room the world never freezes, so the simulation keeps running behind the menu
+    if (!menuOpen || online) {
       // ---- Input relative to the camera ----------------------------------
       const yaw = runtime.cam.yaw
-      const fwd = (isDown('forward') ? 1 : 0) - (isDown('back') ? 1 : 0)
-      const side = (isDown('right') ? 1 : 0) - (isDown('left') ? 1 : 0)
+      const act = !menuOpen
+      const stick = analog.x !== 0 || analog.y !== 0
+      const fwd = act ? (isDown('forward') ? 1 : 0) - (isDown('back') ? 1 : 0) + analog.y : 0
+      const side = act ? (isDown('right') ? 1 : 0) - (isDown('left') ? 1 : 0) + analog.x : 0
       let dx = -Math.sin(yaw) * fwd + Math.cos(yaw) * side
       let dz = -Math.cos(yaw) * fwd - Math.sin(yaw) * side
       const len = Math.hypot(dx, dz)
+      const mag = Math.min(1, len)
       if (len > 0) {
         dx /= len
         dz /= len
       }
-      const topSpeed = len > 0 ? (isDown('run') ? RUN : WALK) : 0
+      // Keyboard: Shift runs. Touch: push the stick to its edge to run, a light push walks slower.
+      let topSpeed = 0
+      if (len > 0) {
+        if (stick) topSpeed = mag > 0.85 ? RUN : WALK * Math.max(0.35, mag / 0.85)
+        else topSpeed = act && isDown('run') ? RUN : WALK
+      }
 
       // Smooth acceleration (snappier on the ground, floatier in the air)
       const k = 1 - Math.exp(-(s.grounded ? 14 : 3.5) * dt)
@@ -102,7 +113,7 @@ export function PlayerController() {
 
       // ---- Jump / gravity -------------------------------------------------
       s.coyote = s.grounded ? 0.12 : Math.max(0, s.coyote - dt)
-      if (consumeJump() && s.coyote > 0) {
+      if (consumeJump() && act && s.coyote > 0) {
         s.vy = JUMP
         s.coyote = 0
         s.grounded = false
@@ -128,6 +139,14 @@ export function PlayerController() {
       if (s.pos.y < -25) {
         s.pos.set(PLAYER_SPAWN.x, PLAYER_SPAWN.y + CENTRE, PLAYER_SPAWN.z)
         s.vx = s.vy = s.vz = 0
+        if (online) sendRespawn()
+      }
+      // The server rejected a move or respawned us: jump to the position it gives
+      if (pending.correct) {
+        const c = pending.correct
+        pending.correct = null
+        s.pos.set(c.x, c.y + CENTRE, c.z)
+        s.vx = s.vy = s.vz = 0
       }
       b.setTranslation({ x: s.pos.x, y: s.pos.y, z: s.pos.z }, true)
 
@@ -152,6 +171,7 @@ export function PlayerController() {
       p.yaw = s.facing
       p.speed = sp
       p.grounded = s.grounded
+      if (online) sendMove(performance.now())
       s.locTimer += dt
       if (s.locTimer > 0.3) {
         s.locTimer = 0

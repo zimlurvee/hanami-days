@@ -1,0 +1,16 @@
+{
+  "name": "hanami-days-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Authoritative multiplayer server for Hanami Days Online (rooms, sync, chat, host controls)",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node test/smoke.test.js"
+  },
+  "dependencies": {
+    "ws": "8.18.0"
+  }
+}

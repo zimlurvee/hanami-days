@@ -27,6 +27,8 @@ export interface CharacterInfo {
   label: string
   blurb: string
   url?: string
+  /** Height in metres the model is scaled to (default 1.7). */
+  height?: number
   bones?: BoneNames
   /** The file's default pose is not a neutral standing pose, so reset the skeleton to its bind pose. */
   resetToBindPose?: boolean
@@ -49,6 +51,7 @@ export const CHARACTERS: CharacterInfo[] = [
       '"Anime school girl (Rigged)" by darknessvoid403 (sketchfab.com/darknessvoid403), CC-BY-4.0',
     // Saved in a crouching pose; its bind pose is a clean standing A-pose
     resetToBindPose: true,
+    height: 1.45,
     bones: {
       hips: /^Hips_/,
       upLegL: /^L_Upperleg/,
@@ -71,6 +74,7 @@ export const CHARACTERS: CharacterInfo[] = [
     blurb: 'Original character with a skirt outfit and long hair.',
     url: '/models/characters/oc/scene.gltf',
     credit: '"Random oc" by Delenapro (sketchfab.com/Delenapro), CC-BY-4.0',
+    height: 1.55,
     bones: {
       hips: /^Hips_/,
       upLegL: /^LeftUpLeg_/,

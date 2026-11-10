@@ -5,8 +5,9 @@ import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { AvatarAnim } from './Avatar'
 import { characterInfo, type BoneNames, type CharacterId } from './models'
+import { useCharacter } from '@/stores/characterStore'
 
-const HEIGHT = 1.7 // every model is scaled to this many metres tall
+const DEFAULT_HEIGHT = 1.7 // metres, unless the model says otherwise in models.ts
 
 interface RigBone {
   bone: THREE.Object3D
@@ -149,14 +150,14 @@ export function GlbAvatar({ id, anim }: Props) {
     model.updateWorldMatrix(true, true)
     const box = new THREE.Box3().setFromObject(model)
     const size = box.getSize(new THREE.Vector3())
-    const scale = size.y > 0 ? HEIGHT / size.y : 1
+    const scale = size.y > 0 ? (info.height ?? DEFAULT_HEIGHT) / size.y : 1
     const centre = box.getCenter(new THREE.Vector3())
     const holder = new THREE.Group()
     holder.add(model)
     holder.scale.setScalar(scale)
-    const baseY = -box.min.y * scale
-    holder.position.set(-centre.x * scale, baseY, -centre.z * scale)
-    return { model, rig, holder, baseY }
+    // Unscaled offsets, so the size slider can rescale every frame without drifting
+    const off = { x: -centre.x, y: -box.min.y, z: -centre.z }
+    return { model, rig, holder, unit: scale, off }
   }, [scene, info])
 
   // Wrapper turns the model so that it faces +Z, which is what the controller assumes
@@ -168,7 +169,7 @@ export function GlbAvatar({ id, anim }: Props) {
   }, [built])
 
   useFrame((_, dt) => {
-    const { model, rig, holder, baseY } = built
+    const { model, rig, holder, unit, off } = built
     const s = state.current
     const f = rig.forward
     const moving = anim.speed > 0.15 && anim.grounded
@@ -192,7 +193,9 @@ export function GlbAvatar({ id, anim }: Props) {
     // Bob and lean on the holder (the bones follow it)
     const bob = moving ? Math.abs(Math.sin(s.phase)) * 0.035 : Math.sin(performance.now() / 650) * 0.006
     s.bob += (bob - s.bob) * k
-    holder.position.y = baseY + s.bob
+    const sc = unit * (anim.size ?? useCharacter.getState().size)
+    holder.scale.setScalar(sc)
+    holder.position.set(off.x * sc, off.y * sc + s.bob, off.z * sc)
 
     // Legs (forward is +Z in model space when f = 1; a negative X rotation swings a hanging leg forward)
     const air = s.armUp

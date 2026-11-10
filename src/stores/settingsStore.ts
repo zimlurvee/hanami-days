@@ -121,7 +121,8 @@ export const useSettings = create<SettingsState>((set, get) => ({
     set({ settings: next })
   },
   reset: () => {
-    persist(DEFAULT_SETTINGS)
-    set({ settings: { ...DEFAULT_SETTINGS, keys: { ...DEFAULT_KEYS } } })
+    const next = { ...DEFAULT_SETTINGS, keys: { ...DEFAULT_KEYS } }
+    persist(next)
+    set({ settings: next })
   },
 }))

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '@/stores/appStore'
+import { useDevice } from '@/stores/deviceStore'
 import { useSettings, type KeyAction, type Quality } from '@/stores/settingsStore'
 
 type Tab = 'graphics' | 'controls' | 'gameplay'
@@ -57,6 +58,8 @@ export function SettingsMenu() {
   const [tab, setTab] = useState<Tab>('graphics')
   const [listening, setListening] = useState<KeyAction | null>(null)
   const { settings: s, set, setKey, applyQuality, reset } = useSettings()
+  const device = useDevice((d) => d.device)
+  const setDevice = useDevice((d) => d.setDevice)
   const closeSettings = useApp((a) => a.closeSettings)
 
   // Capture the next key press while rebinding
@@ -107,6 +110,13 @@ export function SettingsMenu() {
 
         {tab === 'controls' && (
           <>
+            <div className="row">
+              <span className="lbl">Device<span className="desc">PC uses keyboard and mouse. Mobile shows touch controls.</span></span>
+              <div className="seg">
+                <button aria-pressed={device === 'pc'} onClick={() => setDevice('pc')}>🖥 PC</button>
+                <button aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>📱 Mobile</button>
+              </div>
+            </div>
             <Slider label="Mouse sensitivity" value={s.mouseSensitivity} min={0.2} max={3} step={0.1} onChange={(v) => set('mouseSensitivity', v)} format={(v) => v.toFixed(1)} />
             <Toggle label="Invert camera (vertical)" value={s.invertY} onChange={(v) => set('invertY', v)} />
             {(Object.keys(KEY_LABELS) as KeyAction[]).map((a) => (

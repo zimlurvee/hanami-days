@@ -1,6 +1,8 @@
 import { useSettings, type KeyAction } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
 import { runtime } from '@/game/runtime'
+import { isOnline } from '@/net/net'
+import { isMobile } from '@/stores/deviceStore'
 
 const down = new Set<string>()
 let jumpQueued = false
@@ -8,6 +10,27 @@ let interactQueued = false
 let attached = false
 let canvasEl: HTMLElement | null = null
 let dragging = false
+
+/** Virtual joystick (touch): x right, y forward, each -1..1. */
+export const analog = { x: 0, y: 0 }
+
+export function touchJump() { jumpQueued = true }
+export function touchInteract() { interactQueued = true }
+
+/** Camera drag from a finger, same effect as moving the mouse. */
+export function lookBy(dx: number, dy: number) {
+  const s = useSettings.getState().settings
+  const k = 0.0045 * s.mouseSensitivity
+  runtime.cam.yaw -= dx * k
+  runtime.cam.pitch += dy * k * (s.invertY ? -1 : 1)
+  runtime.cam.pitch = Math.max(-0.2, Math.min(1.25, runtime.cam.pitch))
+}
+
+const ZOOMS = [0.55, 1, 1.6, 2.2]
+export function cycleZoom() {
+  const i = ZOOMS.findIndex((z) => Math.abs(z - runtime.cam.zoom) < 0.08)
+  runtime.cam.zoom = ZOOMS[(i + 1) % ZOOMS.length]
+}
 
 export function isDown(action: KeyAction): boolean {
   const code = useSettings.getState().settings.keys[action]
@@ -37,6 +60,7 @@ function onKeyDown(e: KeyboardEvent) {
 
   if (e.code === 'Escape') {
     const app = useApp.getState()
+    if (app.photo) { app.setPhoto(false); return }
     // While the pointer is locked the browser consumes Esc and fires
     // pointerlockchange instead, which pauses the game (see onLockChange).
     if (app.screen === 'playing' && !document.pointerLockElement) {
@@ -46,6 +70,13 @@ function onKeyDown(e: KeyboardEvent) {
   }
   if (!inPlay()) return
   if (e.repeat) return
+  if (e.code === 'Enter' && isOnline() && !isMobile()) {
+    e.preventDefault()
+    down.clear()
+    useApp.getState().setChatOpen(true)
+    releasePointer()
+    return
+  }
   down.add(e.code)
   const keys = useSettings.getState().settings.keys
   if (e.code === keys.jump) jumpQueued = true
@@ -64,6 +95,7 @@ function onBlur() {
 
 function onMouseMove(e: MouseEvent) {
   if (!inPlay()) return
+  if (isMobile()) return
   if (!dragging && document.pointerLockElement !== canvasEl) return
   const s = useSettings.getState().settings
   const k = 0.0025 * s.mouseSensitivity
@@ -73,8 +105,10 @@ function onMouseMove(e: MouseEvent) {
 }
 
 function onMouseDown(e: MouseEvent) {
+  if (isMobile()) return
   if (!inPlay() || !canvasEl) return
   if (e.target !== canvasEl) return
+  if (isMobile()) return
   dragging = true
   canvasEl.requestPointerLock?.()
 }
@@ -84,10 +118,11 @@ function onMouseUp() {
 }
 
 function onLockChange() {
+  if (isMobile()) return
   if (document.pointerLockElement) return
   dragging = false
   const app = useApp.getState()
-  if (app.screen === 'playing' && !app.paused) app.setPaused(true)
+  if (app.screen === 'playing' && !app.paused && !app.chatOpen && !app.charaEdit && !isMobile()) app.setPaused(true)
 }
 
 function onWheel(e: WheelEvent) {
@@ -128,6 +163,7 @@ export function attachInput(canvas: HTMLElement): () => void {
 
 /** Must be called from a user gesture (a click handler). */
 export function lockPointer() {
+  if (isMobile()) return
   canvasEl?.requestPointerLock?.()
 }
 

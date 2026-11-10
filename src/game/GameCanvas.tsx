@@ -9,6 +9,8 @@ import { Water } from './world/Water'
 import { Districts } from './world/Districts'
 import { Environment } from './world/Environment'
 import { PlayerController } from './characters/PlayerController'
+import { RemotePlayers } from './characters/RemotePlayers'
+import { useNet } from '@/net/net'
 import { attachInput } from './input/input'
 import { useSettings } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
@@ -24,7 +26,8 @@ export function GameCanvas() {
   const antialias = useSettings((s) => s.settings.antialias)
   const shadows = useSettings((s) => s.settings.shadows)
   const scale = useSettings((s) => s.settings.resolutionScale)
-  const paused = useApp((s) => s.paused)
+  // Solo: the world freezes while paused. In a room it keeps running for everyone else.
+  const paused = useApp((s) => s.paused) && !useNet((s) => s.room)
 
   const dpr = Math.max(0.5, Math.min(2.5, (window.devicePixelRatio || 1) * scale))
 
@@ -51,6 +54,7 @@ export function GameCanvas() {
             <Districts />
           </Suspense>
           <PlayerController />
+          <RemotePlayers />
         </Physics>
       </Suspense>
     </Canvas>
