@@ -27,7 +27,9 @@ export function GameCanvas() {
   const shadows = useSettings((s) => s.settings.shadows)
   const scale = useSettings((s) => s.settings.resolutionScale)
   // Solo: the world freezes while paused. In a room it keeps running for everyone else.
-  const paused = useApp((s) => s.paused) && !useNet((s) => s.room)
+  const menuOpen = useApp((s) => s.paused)
+  const inRoom = useNet((s) => !!s.room)
+  const paused = menuOpen && !inRoom
 
   const dpr = Math.max(0.5, Math.min(2.5, (window.devicePixelRatio || 1) * scale))
 
