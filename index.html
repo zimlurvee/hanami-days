@@ -14,6 +14,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Show startup crashes on screen instead of leaving a blank page.
+      (function () {
+        function show(msg) {
+          var d = document.getElementById('boot-error');
+          if (!d) {
+            d = document.createElement('pre');
+            d.id = 'boot-error';
+            d.style.cssText = 'position:fixed;inset:0;margin:0;padding:20px;overflow:auto;background:#fff0f5;color:#7a1f3d;font:13px/1.5 monospace;white-space:pre-wrap;z-index:99999';
+            document.body.appendChild(d);
+          }
+          d.textContent = 'Hanami Days failed to start.\nPlease send this message to the developer:\n\n' + msg;
+        }
+        window.addEventListener('error', function (e) { show((e.message || 'Error') + (e.filename ? '\n' + e.filename + ':' + e.lineno : '')); });
+        window.addEventListener('unhandledrejection', function (e) { show('Unhandled: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

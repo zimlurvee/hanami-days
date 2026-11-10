@@ -13,15 +13,6 @@ export default defineConfig({
     outDir: 'dist',
     target: 'es2020',
     chunkSizeWarningLimit: 1800,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
-          rapier: ['@react-three/rapier'],
-        },
-      },
-    },
   },
   server: { port: 5173 },
 })
