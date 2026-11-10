@@ -15,6 +15,12 @@ interface AppState {
   showToast: (msg: string) => void
 }
 
+/** True while the 3D game is mounted (playing, or settings opened from the pause menu). */
+export function isGameActive(): boolean {
+  const a = useApp.getState()
+  return a.screen === 'playing' || (a.screen === 'settings' && a.settingsReturn === 'playing')
+}
+
 let toastTimer: number | undefined
 
 export const useApp = create<AppState>((set, get) => ({

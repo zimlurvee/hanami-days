@@ -11,7 +11,7 @@ function load(): CharacterId {
   } catch {
     /* storage unavailable */
   }
-  return 'student'
+  return 'schoolgirl'
 }
 
 interface CharacterState {

@@ -8,7 +8,7 @@ import { isDown, consumeJump } from '@/game/input/input'
 import { updateThirdPersonCamera } from '@/game/camera/thirdPerson'
 import { runtime } from '@/game/runtime'
 import { PLAYER_SPAWN, locationAt } from '@/game/world'
-import { useApp } from '@/stores/appStore'
+import { useApp, isGameActive } from '@/stores/appStore'
 
 const WALK = 3.4
 const RUN = 6.6
@@ -57,7 +57,13 @@ export function PlayerController() {
     kccRef.current = c
     return () => {
       kccRef.current = null
-      world.removeCharacterController(c)
+      // Leaving the game frees the whole physics world first; do not touch it then.
+      if (!isGameActive()) return
+      try {
+        world.removeCharacterController(c)
+      } catch {
+        /* world already gone */
+      }
     }
   }, [world])
 

@@ -156,28 +156,6 @@ function commercial(b: WorldBuilder) {
 const WALLS = [C.plaster, 0xf7d9d9, 0xdff0e6, 0xe3ecf9, 0xfff1c9, 0xf5e3d2]
 const ROOFS = [C.roofRed, C.roofBlue, C.roofGreen, C.roofGrey, 0xb8665a]
 
-function house(b: WorldBuilder, x: number, z0: number, i: number) {
-  const w = 12
-  const d = 10
-  const h = 3
-  const wall = WALLS[i % WALLS.length]
-  const roof = ROOFS[(i * 3 + 1) % ROOFS.length]
-  shell(b, x, x + w, z0, z0 + d, h, wall, roof, door(x + w / 2), 'n', C.floorWood)
-  // Interior divider with an opening, stepped roof ridge
-  b.wallZ(z0, z0 + d, x + w * 0.62, 0, h, shade(wall, 0.96), [door(z0 + d / 2)])
-  b.rect(x + 1.5, h + 0.35, z0 + 1.5, x + w - 1.5, 0.7, z0 + d - 1.5, shade(roof, 0.92))
-  b.rect(x + 3.5, h + 1.05, z0 + 3, x + w - 3.5, 0.6, z0 + d - 3, shade(roof, 0.85))
-  // Furniture
-  b.box(x + 1.2, 0, z0 + d - 2, 1.1, 0.5, 2.0, C.pink) // bed
-  b.box(x + 3.6, 0, z0 + d - 1, 1.6, 0.75, 0.9, C.wood) // desk
-  b.box(x + 8.5, 0, z0 + 3, 2.4, 0.5, 1, C.teal) // sofa
-  b.box(x + 8.5, 0, z0 + d - 1, 1.6, 0.9, 0.5, C.black) // TV unit
-  // Front garden
-  b.box(x + 1.5, 0, z0 - 1.2, 1.2, 0.3, 0.8, C.pink, false)
-  b.box(x + w - 1.5, 0, z0 - 1.2, 1.2, 0.3, 0.8, C.yellow, false)
-  b.rect(x + w / 2 - 0.9, 0, z0 - 3, x + w / 2 + 0.9, 0.03, z0, C.sidewalk, false)
-}
-
 function apartment(b: WorldBuilder, x0: number, x1: number, z0: number, z1: number, color: number) {
   // Hollow lobby on the ground floor, solid block above
   b.wallX(x0, x1, z0, 0, 4, color, [door((x0 + x1) / 2, 3)])
@@ -209,14 +187,25 @@ function smallShop(b: WorldBuilder, x0: number, x1: number, color: number, signC
   b.zone(name, x0, z0, x1, z1)
 }
 
+// Kenney City Kit Suburban houses (CC0). Only models narrow enough for a 12 m lot.
+const HOUSE_MODELS = ['a', 'c', 'e', 'g', 'j', 'l', 't']
+const HOUSE_COLORS = [0xe3b9a0, 0xd9c7b0, 0xc9d6c0, 0xcdd4e3]
+
+function kenneyHouse(b: WorldBuilder, x: number, z0: number, i: number) {
+  const key = 'suburban/building-type-' + HOUSE_MODELS[(i * 3 + 1) % HOUSE_MODELS.length]
+  // Lot is 12 x 10 starting at (x, z0); fronts face -z toward the road
+  b.model(key, x + 6, z0 + 5, Math.PI, 8, HOUSE_COLORS[i % HOUSE_COLORS.length])
+  b.rect(x + 5.1, 0, z0 - 3, x + 6.9, 0.03, z0, C.sidewalk, false) // front path
+}
+
 function residential(b: WorldBuilder) {
   let n = 0
-  // Row A: north of the residential block, doors face R1
-  for (let i = 0; i < 5; i++) house(b, -190 + i * 16, -20, n++)
-  for (let i = 0; i < 7; i++) house(b, -88 + i * 16, -20, n++)
-  // Row B: south of R2, doors face R2
-  for (let i = 0; i < 5; i++) house(b, -190 + i * 16, 70, n++)
-  for (let i = 0; i < 7; i++) house(b, -88 + i * 16, 70, n++)
+  // Row A: north of the residential block, fronts face R1
+  for (let i = 0; i < 5; i++) kenneyHouse(b, -190 + i * 16, -20, n++)
+  for (let i = 0; i < 7; i++) kenneyHouse(b, -88 + i * 16, -20, n++)
+  // Row B: south of R2, fronts face R2
+  for (let i = 0; i < 5; i++) kenneyHouse(b, -190 + i * 16, 70, n++)
+  for (let i = 0; i < 7; i++) kenneyHouse(b, -88 + i * 16, 70, n++)
   // Street trees in the gaps between houses
   for (let i = 0; i < 7; i++) {
     b.tree(-88 + i * 16 + 14, -17, 0.9, 'sakura')

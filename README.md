@@ -7,7 +7,7 @@ An original 3D open-world school-town life sandbox for the browser. It takes gam
 ## What works now (Phase 1)
 
 - Large town (400 m x 400 m): Japanese high school (two floors, rooftop, library, cafeteria, labs, teachers' room, gym, playground, gate), residential streets, shops, supermarket, apartments, park, playground, swimming pool, beach, hospital, police station, shrine, bus stops, parking, roads.
-- Two extra districts built from Kenney's CC0 City Kit models (kenney.nl): Sunny Hills Suburb (south-east) and an Industrial District (north-west, off a service road from the main road). Buildings are solid but not enterable.
+- The residential streets use Kenney's CC0 City Kit Suburban houses (kenney.nl). Two extra districts use the same kits: Sunny Hills Suburb (south-east) and an Industrial District (north-west, off a service road from the main road). Kenney buildings are solid but not enterable; the school, shops, apartments, hospital and other public buildings are enterable.
 - Real collision with Rapier: doors, walls, stairs (auto-step), indoor floors, rooftop access, no invisible walls except the map edge.
 - Third-person character with three selectable models (built-in Student, Anime School Girl, Random OC) chosen in Character Edit or the pause menu. Walk, run, jump and idle animation are driven procedurally on each model's skeleton, so any rigged humanoid can be added in `src/game/characters/models.ts`.
 - Orbit camera: mouse look, wheel zoom, collision pull-in so walls never block the view.

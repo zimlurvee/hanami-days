@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRapier } from '@react-three/rapier'
 import { getWorld, WORLD_HALF } from './index'
+import { isGameActive } from '@/stores/appStore'
 
 /**
  * Adds one fixed cuboid collider per solid box in the world, plus trunk
@@ -38,7 +39,15 @@ export function WorldColliders() {
     wall(H + 1, 0, 1, H + 2)
 
     return () => {
-      world.removeRigidBody(body)
+      // When the player leaves the game, <Physics> frees the whole world first, and
+      // touching it afterwards crashes the WASM engine. Only clean up for a plain
+      // re-run of this effect while the game is still on screen.
+      if (!isGameActive()) return
+      try {
+        world.removeRigidBody(body)
+      } catch {
+        /* world already gone */
+      }
     }
   }, [world, rapier])
 
