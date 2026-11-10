@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
-import { Avatar, type AvatarAnim } from './Avatar'
-import { DEFAULT_APPEARANCE } from './appearance'
+import type { AvatarAnim } from './Avatar'
+import { CharacterModel } from './CharacterModel'
 import { isDown, consumeJump } from '@/game/input/input'
 import { updateThirdPersonCamera } from '@/game/camera/thirdPerson'
 import { runtime } from '@/game/runtime'
@@ -171,7 +171,7 @@ export function PlayerController() {
         <CapsuleCollider ref={collider} args={[HALF, RADIUS]} />
       </RigidBody>
       <group ref={avatar}>
-        <Avatar appearance={DEFAULT_APPEARANCE} anim={anim} />
+        <CharacterModel anim={anim} />
       </group>
     </>
   )

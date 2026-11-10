@@ -14,14 +14,6 @@ const INFO: Partial<Record<Screen, { title: string; phase: string; needs: string
       'Create / join / public room browser, host controls, invite links',
     ],
   },
-  characterEdit: {
-    title: 'Character Edit',
-    phase: 'Phase 2',
-    needs: [
-      'Editor UI that changes the live 3D character (hair, face, outfits, accessories)',
-      'Save slots stored on your account, then synced to other players',
-    ],
-  },
   profile: {
     title: 'Profile',
     phase: 'Phase 2',

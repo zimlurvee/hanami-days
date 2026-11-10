@@ -7,6 +7,7 @@ import { CreditsScreen } from '@/components/Menus/CreditsScreen'
 import { ComingSoon } from '@/components/Menus/ComingSoon'
 import { PauseMenu } from '@/components/Menus/PauseMenu'
 import { HUD } from '@/components/HUD/HUD'
+import { CharacterSelect } from '@/components/CharacterEditor/CharacterSelect'
 
 // The 3D engine is a big chunk, so it only loads once the player starts a game.
 const GameCanvas = lazy(() => import('@/game/GameCanvas').then((m) => ({ default: m.GameCanvas })))
@@ -36,7 +37,8 @@ export default function App() {
       {screen === 'menu' && <MainMenu />}
       {screen === 'settings' && <SettingsMenu />}
       {screen === 'credits' && <CreditsScreen />}
-      {(screen === 'multiplayer' || screen === 'characterEdit' || screen === 'profile') && <ComingSoon screen={screen} />}
+      {screen === 'characterEdit' && <CharacterSelect />}
+      {(screen === 'multiplayer' || screen === 'profile') && <ComingSoon screen={screen} />}
 
       {toast && <div className="toast" role="status">{toast}</div>}
     </>

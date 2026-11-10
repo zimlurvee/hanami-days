@@ -1,6 +1,8 @@
 import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { lockPointer } from '@/game/input/input'
+import { useCharacter } from '@/stores/characterStore'
+import { CHARACTERS } from '@/game/characters/models'
 
 const WEATHERS: { id: Weather; label: string }[] = [
   { id: 'sunny', label: '☀ Sunny' },
@@ -19,6 +21,8 @@ export function PauseMenu() {
   const openSettings = useApp((s) => s.openSettings)
   const go = useApp((s) => s.go)
   const { hour, weather, dayLengthSeconds, setHour, setWeather, setDayLength } = useWorld()
+  const character = useCharacter((s) => s.model)
+  const setCharacter = useCharacter((s) => s.setModel)
 
   return (
     <div className="overlay">
@@ -45,7 +49,18 @@ export function PauseMenu() {
           </button>
         </div>
 
-        <h2 style={{ fontSize: 18 }}>World controls</h2>
+        <div className="row">
+          <span className="lbl">Character</span>
+          <div className="seg">
+            {CHARACTERS.map((c) => (
+              <button key={c.id} aria-pressed={character === c.id} onClick={() => setCharacter(c.id)}>
+                {c.id === 'student' ? 'Student' : c.id === 'schoolgirl' ? 'School Girl' : 'OC'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: 18, marginTop: 14 }}>World controls</h2>
         <p className="sub">Solo-mode controls. In multiplayer these become host-only.</p>
         <div className="row">
           <label className="lbl">Time of day</label>
