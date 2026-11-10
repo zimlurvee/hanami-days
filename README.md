@@ -74,7 +74,7 @@ World layout is plain data generation in `src/game/world/*.ts` (no React), rende
 
 ## Multiplayer (no accounts)
 
-Players just type a username, then Quick Join, Create Room, Join by Code, or open a public room. Rooms are temporary. The server lives in `server/` and must be deployed separately from Netlify: see `server/README.md`. Then set `VITE_SERVER_URL` in Netlify.
+Players just type a username, then Quick Join, Create Room, Join by Code, or open a public room. Rooms are temporary. The server lives in `server/` and must be deployed separately from Netlify: see `server/README.md` (free Cloudflare Workers, no card). Then set `VITE_SERVER_URL` in Netlify.
 
 ## Controls and menus
 

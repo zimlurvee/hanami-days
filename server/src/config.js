@@ -1,11 +1,16 @@
 // Tunable limits. Everything the server enforces lives here so it is easy to audit.
 
-export const PORT = Number(process.env.PORT) || 8080
+// `process` does not exist on every host (Cloudflare Workers), so guard it.
+const ENV = typeof process !== 'undefined' && process.env ? process.env : {}
+
+export const PORT = Number(ENV.PORT) || 8080
 /** Comma separated list of allowed browser origins. Empty = allow any (fine for development). */
-export const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean)
+export const parseOrigins = (v) =>
+  String(v || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+export const ALLOWED_ORIGINS = parseOrigins(ENV.ALLOWED_ORIGINS)
 
 export const CHARACTERS = ['student', 'schoolgirl', 'oc']
 export const MODES = ['school_rp', 'free_roam', 'social', 'sandbox', 'private']

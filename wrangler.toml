@@ -1,0 +1,16 @@
+# Cloudflare Workers deploy of the multiplayer server (free plan, no card).
+name = "hanami-days-server"
+main = "server/src/worker.js"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "Hub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Hub"]
+
+[vars]
+# Leave empty to allow any website, or set to https://hanamidays.netlify.app
+ALLOWED_ORIGINS = ""

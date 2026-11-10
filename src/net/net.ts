@@ -311,11 +311,17 @@ export const sendAppearance = () => {
 export const hostAction = (a: string, extra: object = {}) => send({ t: 'host', a, ...extra })
 
 let lastSend = 0
+let lastKey = ''
+/** 10 updates a second while moving; a heartbeat once a second when standing still (keeps free hosting quotas small). */
 export function sendMove(now: number) {
-  if (now - lastSend < 66) return
-  lastSend = now
   const p = runtime.player
-  send({ t: 'move', x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2), yaw: +p.yaw.toFixed(2), sp: +p.speed.toFixed(1), g: p.grounded ? 1 : 0, vy: 0 })
+  const x = +p.x.toFixed(2), y = +p.y.toFixed(2), z = +p.z.toFixed(2), yaw = +p.yaw.toFixed(2), sp = +p.speed.toFixed(1)
+  const key = `${x},${y},${z},${yaw},${sp},${p.grounded}`
+  if (now - lastSend < 100) return
+  if (key === lastKey && now - lastSend < 1000) return
+  lastSend = now
+  lastKey = key
+  send({ t: 'move', x, y, z, yaw, sp, g: p.grounded ? 1 : 0, vy: 0 })
 }
 
 export function inviteLink(code: string) {
