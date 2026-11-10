@@ -1,0 +1,46 @@
+import { useEffect } from 'react'
+import { useRapier } from '@react-three/rapier'
+import { getWorld, WORLD_HALF } from './index'
+
+/**
+ * Adds one fixed cuboid collider per solid box in the world, plus trunk
+ * colliders for trees and an outer boundary. Colliders are created straight on
+ * the Rapier world (one fixed body) which is far cheaper than thousands of
+ * React collider components.
+ */
+export function WorldColliders() {
+  const { world, rapier } = useRapier()
+
+  useEffect(() => {
+    const body = world.createRigidBody(rapier.RigidBodyDesc.fixed())
+    const w = getWorld()
+
+    for (const b of w.boxes) {
+      if (!b.collide) continue
+      world.createCollider(
+        rapier.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y + b.h / 2, b.z),
+        body,
+      )
+    }
+
+    for (const t of w.trees) {
+      const r = 0.28 * t.scale
+      world.createCollider(rapier.ColliderDesc.cuboid(r, 1.5, r).setTranslation(t.x, 1.5, t.z), body)
+    }
+
+    // World boundary (the only invisible walls in the game, at the map edge)
+    const H = WORLD_HALF
+    const wall = (x: number, z: number, hx: number, hz: number) =>
+      world.createCollider(rapier.ColliderDesc.cuboid(hx, 15, hz).setTranslation(x, 15, z), body)
+    wall(0, -H - 1, H + 2, 1)
+    wall(0, H + 1, H + 2, 1)
+    wall(-H - 1, 0, 1, H + 2)
+    wall(H + 1, 0, 1, H + 2)
+
+    return () => {
+      world.removeRigidBody(body)
+    }
+  }, [world, rapier])
+
+  return null
+}
