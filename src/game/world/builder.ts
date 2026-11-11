@@ -55,7 +55,8 @@ export interface TreeDef {
   x: number
   z: number
   scale: number
-  kind: 'sakura' | 'pine' | 'round'
+  /** 'cherry' is the detailed tree model (GLB); 'sakura' is the cheap instanced version. */
+  kind: 'sakura' | 'cherry' | 'pine' | 'round'
 }
 
 export interface SpawnDef {

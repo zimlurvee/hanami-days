@@ -81,7 +81,7 @@ function shrine(b: WorldBuilder) {
   b.box(158, 1, -155, 2, 0.8, 1, C.wood) // offering box
   b.rect(152, 1, -158, 164, 0.04, -146, C.floorWood, false)
   for (const [tx, tz] of [[146, -104], [170, -110], [146, -130], [172, -128], [144, -150], [174, -150], [152, -166], [164, -166]]) {
-    b.tree(tx, tz, 1.2, tx % 2 === 0 ? 'pine' : 'sakura')
+    b.tree(tx, tz, 1.2, tx % 2 === 0 ? 'pine' : 'cherry')
   }
   b.zone('Shrine', 120, -170, 196, -95)
 }
@@ -109,7 +109,7 @@ function park(b: WorldBuilder) {
   b.rect(58, 2, 24, 62.2, 0.15, 28.2, C.teal)
   b.rect(52, 0, 10, 76, 0.01, 30, 0xf4e5b5, false)
   for (const [tx, tz] of [[54, 12], [54, 50], [72, 12], [112, 12], [112, 50], [70, 50], [96, 14], [100, 14], [66, 36], [74, 44]]) {
-    b.tree(tx, tz, 1.1, 'sakura')
+    b.tree(tx, tz, 1.1, 'cherry')
   }
   b.zone('Playground', 52, 10, 76, 30)
   b.zone('City Park', 52, 10, 114, 52)

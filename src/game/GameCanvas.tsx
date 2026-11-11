@@ -12,6 +12,7 @@ import { PlayerController } from './characters/PlayerController'
 import { RemotePlayers } from './characters/RemotePlayers'
 import { Props } from './props/Props'
 import { Petals } from './world/Petals'
+import { CherryTrees } from './world/CherryTrees'
 import { useNet } from '@/net/net'
 import { attachInput } from './input/input'
 import { useSettings } from '@/stores/settingsStore'
@@ -61,6 +62,7 @@ export function GameCanvas() {
           <RemotePlayers />
           <Props />
           <Petals />
+          <CherryTrees />
         </Physics>
       </Suspense>
     </Canvas>

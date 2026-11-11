@@ -28,7 +28,7 @@ function renderMap(): HTMLCanvasElement {
     g.fillRect(px(wt.x0), px(wt.z0), (wt.x1 - wt.x0) * PX_PER_M, (wt.z1 - wt.z0) * PX_PER_M)
   }
   for (const t of w.trees) {
-    g.fillStyle = t.kind === 'sakura' ? '#ffb7d1' : '#58b75c'
+    g.fillStyle = t.kind === 'sakura' || t.kind === 'cherry' ? '#ffb7d1' : '#58b75c'
     g.beginPath()
     g.arc(px(t.x), px(t.z), 2.4 * t.scale * PX_PER_M * 0.5, 0, Math.PI * 2)
     g.fill()

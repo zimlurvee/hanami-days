@@ -325,7 +325,7 @@ function grounds(b: WorldBuilder) {
   for (const px of [-26, -12]) for (const pz of [-58, -52]) b.box(px, 0, pz, 0.2, 2.2, 0.2, C.stone)
   // Sakura trees in the front yard and around the compound
   for (const [tx, tz] of [[-78, -50], [-70, -45], [-50, -50], [-42, -45], [-90, -52], [-18, -64], [-8, -60]]) {
-    b.tree(tx, tz, 1.1, 'sakura')
+    b.tree(tx, tz, 1.1, 'cherry')
   }
   for (const [tx, tz] of [[-96, -88], [-96, -62], [-30, -104], [-8, -100]]) b.tree(tx, tz, 1, 'round')
 }
