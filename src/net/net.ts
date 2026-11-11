@@ -3,6 +3,8 @@ import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { useCharacter } from '@/stores/characterStore'
 import { runtime } from '@/game/runtime'
+import { useMissions } from '@/stores/missionsStore'
+import { useItems } from '@/stores/itemsStore'
 import { useProps, type Prop, type PropKind } from '@/stores/propsStore'
 
 export interface RoomInfo {
@@ -39,7 +41,7 @@ export interface PlayerInfo {
 /** Live position data of another player. Mutated by the network, read every frame by the renderer. */
 export interface Remote extends PlayerInfo {
   x: number; y: number; z: number; yaw: number
-  speed: number; grounded: boolean; vy: number; pose: number
+  speed: number; grounded: boolean; vy: number; pose: number; items: string[]
   /** Smoothed values actually drawn. */
   dx: number; dy: number; dz: number; dyaw: number
   seen: boolean
@@ -118,7 +120,7 @@ const send = (m: object) => {
 
 function profile() {
   const c = useCharacter.getState()
-  return { name: loadName(), character: c.model, size: c.size }
+  return { name: loadName(), character: c.model, size: c.size, items: useItems.getState().worn }
 }
 
 export function loadName(): string {
@@ -194,11 +196,11 @@ function addRemote(p: any) {
   const me = useNet.getState().meId
   if (p.id === me) return
   const ex = remotes.get(p.id)
-  if (ex) { ex.name = p.name; ex.character = p.character; ex.size = p.size }
+  if (ex) { ex.name = p.name; ex.character = p.character; ex.size = p.size; ex.items = p.items ?? [] }
   else {
     remotes.set(p.id, {
       id: p.id, name: p.name, character: p.character, size: p.size,
-      x: p.x, y: p.y, z: p.z, yaw: p.yaw, speed: 0, grounded: true, vy: 0, pose: 0,
+      x: p.x, y: p.y, z: p.z, yaw: p.yaw, speed: 0, grounded: true, vy: 0, pose: 0, items: p.items ?? [],
       dx: p.x, dy: p.y, dz: p.z, dyaw: p.yaw, seen: false,
     })
   }
@@ -238,7 +240,7 @@ function handle(m: any) {
     case 'pleft': remotes.delete(m.id); syncIds(); return
     case 'papp': {
       const r = remotes.get(m.id)
-      if (r) { r.character = m.character; r.size = m.size; syncIds() }
+      if (r) { r.character = m.character; r.size = m.size; r.items = m.items ?? []; syncIds() }
       return
     }
     case 's': {
@@ -304,7 +306,10 @@ export async function fetchRooms() {
 export const sendProp = (kind: PropKind, x: number, y: number, z: number, yaw: number) => send({ t: 'prop', kind, x, y, z, yaw })
 export const sendPropDel = (id: string) => send({ t: 'propdel', id })
 export const sendPropClear = (all: boolean) => send({ t: 'propclear', all })
-export const sendChat = (text: string) => send({ t: 'chat', text })
+export const sendChat = (text: string) => {
+  send({ t: 'chat', text })
+  useMissions.getState().complete('chat')
+}
 export const sendRespawn = () => send({ t: 'respawn' })
 
 /** Menu teleport (Area Move): move locally and tell the server the jump is allowed. */
@@ -315,7 +320,7 @@ export function teleportTo(x: number, y: number, z: number) {
 }
 export const sendAppearance = () => {
   const c = useCharacter.getState()
-  send({ t: 'appearance', character: c.model, size: c.size })
+  send({ t: 'appearance', character: c.model, size: c.size, items: useItems.getState().worn })
 }
 export const hostAction = (a: string, extra: object = {}) => send({ t: 'host', a, ...extra })
 
@@ -336,6 +341,8 @@ export function sendMove(now: number) {
 export function inviteLink(code: string) {
   return `${location.origin}${location.pathname}?room=${code}`
 }
+
+useItems.subscribe((s, prev) => { if (isOnline() && s.worn !== prev.worn) sendAppearance() })
 
 // Tell others when we change character / size while online
 useCharacter.subscribe((s, prev) => {

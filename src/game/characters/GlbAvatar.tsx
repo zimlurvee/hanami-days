@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -6,6 +6,8 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { AvatarAnim } from './Avatar'
 import { characterInfo, type BoneNames, type CharacterId } from './models'
 import { useCharacter } from '@/stores/characterStore'
+import { useItems } from '@/stores/itemsStore'
+import { Accessories } from './Accessories'
 
 const DEFAULT_HEIGHT = 1.7 // metres, unless the model says otherwise in models.ts
 
@@ -173,6 +175,9 @@ export function GlbAvatar({ id, anim }: Props) {
 
   // Wrapper turns the model so that it faces +Z, which is what the controller assumes
   const outer = useRef<THREE.Group>(null)
+  const acc = useRef<THREE.Group>(null)
+  const [worn, setWorn] = useState<string[]>([])
+  const wornKey = useRef('')
   const state = useRef({ phase: 0, legSwing: 0, knee: 0, armSwing: 0, armUp: 0, bob: 0, drop: 0, pw: 0, poseLast: 0, t: 0 })
 
   useEffect(() => {
@@ -265,11 +270,26 @@ export function GlbAvatar({ id, anim }: Props) {
     // Quaternions pose() scribbles on are _qa.._qe, so _qf / _qg survive
     pose(model, rig.upArmL, _qf.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
     pose(model, rig.upArmR, _qg.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
+
+    // Accessories follow the size setting and the sitting drop
+    const items = anim.items ?? useItems.getState().worn
+    const key = items.join(',')
+    if (key !== wornKey.current) {
+      wornKey.current = key
+      setWorn([...items])
+    }
+    if (acc.current) {
+      acc.current.scale.setScalar(unitSize)
+      acc.current.position.y = -s.drop
+    }
   })
 
   return (
     <group ref={outer}>
       <primitive object={built.holder} />
+      <group ref={acc}>
+        <Accessories items={worn} h={info.height ?? DEFAULT_HEIGHT} />
+      </group>
     </group>
   )
 }

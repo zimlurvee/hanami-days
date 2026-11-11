@@ -5,6 +5,8 @@ import { useWorld } from '@/stores/worldStore'
 import { useSettings } from '@/stores/settingsStore'
 import { useApp } from '@/stores/appStore'
 import { OnlineHUD } from '@/components/Multiplayer/OnlineHUD'
+import { useMissions } from '@/stores/missionsStore'
+import { loadName } from '@/net/net'
 import { formatHour } from '@/components/Menus/GameMenu'
 
 const WEATHER_ICON = { sunny: '☀', cloudy: '☁', rainy: '🌧' } as const
@@ -20,6 +22,7 @@ export function HUD() {
   const keys = useSettings((s) => s.settings.keys)
   const paused = useApp((s) => s.paused)
   const chatOpen = useApp((s) => s.chatOpen)
+  const money = useMissions((s) => s.money)
 
   // Poll the mutable runtime a few times a second instead of re-rendering per frame
   useEffect(() => {
@@ -36,11 +39,11 @@ export function HUD() {
         <div className="chip name">
           <span className="avatar-dot" />
           <div>
-            <div>Guest</div>
+            <div>{loadName()}</div>
             <div className="meter" title="Stamina"><i /></div>
           </div>
         </div>
-        <div className="chip loc">📍 {location}</div>
+        <div className="chip loc">📍 {location} &nbsp; ¥{money}</div>
       </div>
 
       <div className="tr">

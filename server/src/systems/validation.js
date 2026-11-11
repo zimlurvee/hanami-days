@@ -1,4 +1,4 @@
-import { CHARACTERS, MODES, PLAYER, ROOM, WEATHERS } from '../config.js'
+import { ITEMS, MAX_ITEMS, CHARACTERS, MODES, PLAYER, ROOM, WEATHERS } from '../config.js'
 
 /** Remove control characters and collapse whitespace. */
 export function cleanText(value, max) {
@@ -75,4 +75,10 @@ export class WindowLimiter {
     this.times.push(now)
     return true
   }
+}
+
+/** Keep only known accessory ids, no duplicates. */
+export function cleanItems(v) {
+  if (!Array.isArray(v)) return []
+  return [...new Set(v.filter((x) => typeof x === 'string' && ITEMS.includes(x)))].slice(0, MAX_ITEMS)
 }

@@ -5,6 +5,7 @@ import { MainMenu } from '@/components/Menus/MainMenu'
 import { SettingsMenu } from '@/components/Menus/SettingsMenu'
 import { CreditsScreen } from '@/components/Menus/CreditsScreen'
 import { MultiplayerMenu } from '@/components/Multiplayer/MultiplayerMenu'
+import { MissionTracker } from '@/components/HUD/MissionTracker'
 import { GameMenu } from '@/components/Menus/GameMenu'
 import { CharaEditPanel } from '@/components/CharacterEditor/CharaEditPanel'
 import { HUD } from '@/components/HUD/HUD'
@@ -57,6 +58,7 @@ export default function App() {
           {screen === 'playing' && photo && (
             <button className="photo-exit" onClick={() => useApp.getState().setPhoto(false)} aria-label="Exit photo mode">✕</button>
           )}
+          {screen === 'playing' && <MissionTracker />}
           {screen === 'playing' && paused && <GameMenu />}
         </>
       )}

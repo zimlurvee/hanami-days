@@ -1,5 +1,6 @@
 import { useProps, MAX_PROPS_PER_PLAYER, MAX_PROPS_PER_ROOM } from '@/stores/propsStore'
 import { useApp } from '@/stores/appStore'
+import { useMissions } from '@/stores/missionsStore'
 import { runtime } from '@/game/runtime'
 import { isOnline, sendProp, sendPropDel, sendPropClear, useNet } from '@/net/net'
 
@@ -32,10 +33,12 @@ export function putProp() {
   if (isOnline()) {
     if (!useNet.getState().room?.propsAllowed) { toast('Props are turned off in this room.'); return }
     sendProp(selected, x, p.y, z, yaw)
+    useMissions.getState().complete('prop')
     return
   }
   if (props.length >= MAX_PROPS_PER_ROOM) { toast('Too many props.'); return }
   add({ id: `L${++localId}`, kind: selected, x, y: p.y, z, yaw, owner: 'me' })
+  useMissions.getState().complete('prop')
 }
 
 export function removeProp(id: string) {

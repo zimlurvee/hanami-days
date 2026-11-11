@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { getWorld, type BoxDef } from './index'
 import { useSettings } from '@/stores/settingsStore'
+import { patchGrass } from './grass'
 
 const CHUNK = 50
 
@@ -60,7 +61,7 @@ function Chunk({ boxes }: { boxes: BoxDef[] }) {
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, boxes.length]} castShadow={shadows} receiveShadow={shadows} frustumCulled>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial roughness={0.9} metalness={0} />
+      <meshStandardMaterial roughness={0.9} metalness={0} onBeforeCompile={patchGrass} customProgramCacheKey={() => 'hanami-grass'} />
     </instancedMesh>
   )
 }

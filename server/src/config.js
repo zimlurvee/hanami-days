@@ -35,6 +35,9 @@ export const PROPS = {
 /** Pose ids sent by clients: 0 = none, 1 wave, 2 cheer, 3 sit, 4 bow. */
 export const POSE_COUNT = 5
 
+export const ITEMS = ['cap', 'glasses', 'bag', 'ribbon', 'headphones']
+export const MAX_ITEMS = 4
+
 export const PLAYER = { nameMax: 20, sizeMin: 0.7, sizeMax: 1.3 }
 
 export const WORLD = {

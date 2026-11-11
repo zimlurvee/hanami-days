@@ -3,6 +3,14 @@ import * as THREE from 'three'
 import { getWorld, type TreeDef } from './index'
 import { useSettings } from '@/stores/settingsStore'
 
+/** Extra blossom clumps on sakura trees: x, y, z offset and scale, so each tree is a fuller cloud. */
+const SAKURA_CLUMPS = [
+  [1.25, -0.35, 0.55, 0.7],
+  [-1.2, -0.25, -0.6, 0.65],
+  [0.15, 0.85, -0.9, 0.6],
+  [-0.5, 0.5, 1.1, 0.55],
+]
+
 const KINDS: { kind: TreeDef['kind']; leaves: number[]; trunk: number; trunkH: number }[] = [
   { kind: 'sakura', leaves: [0xffb7d1, 0xffc6dc, 0xffa6c6], trunk: 0x7a5a45, trunkH: 2.6 },
   { kind: 'round', leaves: [0x66c466, 0x7ed56f, 0x58b75c], trunk: 0x8a6446, trunkH: 2.4 },
@@ -30,6 +38,7 @@ const col = new THREE.Color()
 function TreeKind({ spec, trees }: { spec: (typeof KINDS)[number]; trees: TreeDef[] }) {
   const trunk = useRef<THREE.InstancedMesh>(null)
   const crown = useRef<THREE.InstancedMesh>(null)
+  const clumps = useRef<(THREE.InstancedMesh | null)[]>([])
   const shadows = useSettings((st) => st.settings.shadows)
   const count = trees.length
   const isPine = spec.kind === 'pine'
@@ -54,6 +63,23 @@ function TreeKind({ spec, trees }: { spec: (typeof KINDS)[number]; trees: TreeDe
       crown.current!.setMatrixAt(i, m4)
       crown.current!.setColorAt(i, col.setHex(spec.leaves[i % spec.leaves.length]))
     })
+    if (spec.kind === 'sakura') {
+      SAKURA_CLUMPS.forEach(([ox, oy, oz, os], ci) => {
+        const mesh = clumps.current[ci]
+        if (!mesh) return
+        trees.forEach((t, i) => {
+          const sc = t.scale
+          p.set(t.x + ox * sc, spec.trunkH * sc + (1.1 + oy) * sc, t.z + oz * sc)
+          s.set(sc * os, sc * os, sc * os)
+          m4.compose(p, q, s)
+          mesh.setMatrixAt(i, m4)
+          mesh.setColorAt(i, col.setHex(spec.leaves[(i + ci + 1) % spec.leaves.length]))
+        })
+        mesh.instanceMatrix.needsUpdate = true
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+        mesh.computeBoundingSphere()
+      })
+    }
     for (const m of [trunk.current, crown.current]) {
       m.instanceMatrix.needsUpdate = true
       m.computeBoundingSphere()
@@ -71,6 +97,12 @@ function TreeKind({ spec, trees }: { spec: (typeof KINDS)[number]; trees: TreeDe
       <instancedMesh ref={crown} args={[crownGeo, undefined, count]} castShadow={shadows}>
         <meshStandardMaterial roughness={0.9} flatShading />
       </instancedMesh>
+      {spec.kind === 'sakura' &&
+        SAKURA_CLUMPS.map((_, ci) => (
+          <instancedMesh key={ci} ref={(m) => { clumps.current[ci] = m }} args={[crownGeo, undefined, count]} castShadow={shadows}>
+            <meshStandardMaterial roughness={0.9} flatShading />
+          </instancedMesh>
+        ))}
     </>
   )
 }

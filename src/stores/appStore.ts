@@ -19,6 +19,9 @@ interface AppState {
   /** Photo mode: HUD hidden. */
   photo: boolean
   setPhoto: (on: boolean) => void
+  /** Which page the in-game Menu opens on. */
+  menuPage: string
+  setMenuPage: (p: string) => void
   go: (screen: Screen) => void
   openSettings: (from: 'menu' | 'playing') => void
   closeSettings: () => void
@@ -45,6 +48,8 @@ export const useApp = create<AppState>((set, get) => ({
   setCharaEdit: (charaEdit) => set({ charaEdit }),
   photo: false,
   setPhoto: (photo) => set({ photo }),
+  menuPage: 'home',
+  setMenuPage: (menuPage) => set({ menuPage }),
   go: (screen) => set({ screen, paused: false, chatOpen: false, charaEdit: null, photo: false }),
   openSettings: (from) => set({ screen: 'settings', settingsReturn: from }),
   closeSettings: () => {

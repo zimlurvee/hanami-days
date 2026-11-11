@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useT, useLang } from '@/stores/langStore'
+import { LANGS } from '@/i18n/strings'
+import { MISSIONS, useMissions } from '@/stores/missionsStore'
 import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { lockPointer } from '@/game/input/input'
@@ -22,7 +25,7 @@ export function formatHour(h: number) {
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
 }
 
-type Page = 'home' | 'status' | 'weather' | 'props' | 'room'
+type Page = 'home' | 'status' | 'weather' | 'props' | 'room' | 'missions' | 'lang'
 
 /**
  * The in-game MENU, laid out like the original: a row of section buttons, the
@@ -42,7 +45,13 @@ export function GameMenu() {
   const room = useNet((s) => s.room)
   const meId = useNet((s) => s.meId)
   const names = useNet((s) => s.names)
-  const [page, setPage] = useState<Page>('home')
+  const t = useT()
+  const lang = useLang((s) => s.lang)
+  const setLang = useLang((s) => s.setLang)
+  const money = useMissions((s) => s.money)
+  const doneMissions = useMissions((s) => s.done)
+  const [page, setPage] = useState<Page>(() => useApp.getState().menuPage as Page)
+  useEffect(() => { useApp.getState().setMenuPage('home') }, [])
   const props = useProps((s) => s.props)
   const selectedProp = useProps((s) => s.selected)
   const selectProp = useProps((s) => s.select)
@@ -62,19 +71,21 @@ export function GameMenu() {
         <button className="xbtn" onClick={close} aria-label="Close menu">✕</button>
 
         <div className="mrow">
-          <button className="pill" onClick={() => openSettings('playing')}>System Setting</button>
-          <button className="pill" aria-pressed={page === 'status'} onClick={() => setPage(page === 'status' ? 'home' : 'status')}>Status</button>
-          <button className="pill" onClick={() => { setPaused(false); setCharaEdit('chara'); lockPointer() }}>Chara Edit</button>
-          <button className="pill" aria-pressed={page === 'props'} onClick={() => setPage(page === 'props' ? 'home' : 'props')}>Props</button>
-          <button className="pill" aria-pressed={page === 'weather'} onClick={() => setPage(page === 'weather' ? 'home' : 'weather')}>Weather</button>
-          {room && <button className="pill" aria-pressed={page === 'room'} onClick={() => setPage(page === 'room' ? 'home' : 'room')}>Room</button>}
-          <button className="pill" onClick={() => { leaveRoom(); go('menu') }}>{room ? 'Leave room' : 'Back to Title'}</button>
+          <button className="pill" onClick={() => openSettings('playing')}>{t('sysSetting')}</button>
+          <button className="pill" aria-pressed={page === 'status'} onClick={() => setPage(page === 'status' ? 'home' : 'status')}>{t('status')}</button>
+          <button className="pill" onClick={() => { setPaused(false); setCharaEdit('chara'); lockPointer() }}>{t('charaEdit')}</button>
+          <button className="pill" aria-pressed={page === 'props'} onClick={() => setPage(page === 'props' ? 'home' : 'props')}>{t('props')}</button>
+          <button className="pill" aria-pressed={page === 'missions'} onClick={() => setPage(page === 'missions' ? 'home' : 'missions')}>{t('missions')}</button>
+          <button className="pill" aria-pressed={page === 'lang'} onClick={() => setPage(page === 'lang' ? 'home' : 'lang')}>{t('language')}</button>
+          <button className="pill" aria-pressed={page === 'weather'} onClick={() => setPage(page === 'weather' ? 'home' : 'weather')}>{t('weather')}</button>
+          {room && <button className="pill" aria-pressed={page === 'room'} onClick={() => setPage(page === 'room' ? 'home' : 'room')}>{t('room')}</button>}
+          <button className="pill" onClick={() => { leaveRoom(); go('menu') }}>{room ? t('leaveRoom') : t('backTitle')}</button>
         </div>
 
         {page === 'home' && (
           <>
             <div className="box">
-              <div className="boxtitle">Area Move</div>
+              <div className="boxtitle">{t('areaMove')}</div>
               <div className="agrid">
                 {AREAS.map((a) => (
                   <button key={a.id} className="abtn" onClick={() => move(a.label, a.x, a.y, a.z)}>{a.label}</button>
@@ -83,7 +94,7 @@ export function GameMenu() {
             </div>
 
             <div className="box">
-              <div className="boxtitle">Character Change</div>
+              <div className="boxtitle">{t('charChange')}</div>
               <div className="agrid c3">
                 {CHARACTERS.map((c) => (
                   <button key={c.id} className={`abtn ${character === c.id ? 'on' : ''}`} onClick={() => setCharacter(c.id)}>
@@ -102,9 +113,40 @@ export function GameMenu() {
           </>
         )}
 
+        {page === 'missions' && (
+          <div className="box">
+            <div className="boxtitle">{t('missions')}</div>
+            <p className="sub">{t('missionsInfo')} · {t('money')}: <b>¥{money}</b></p>
+            <div className="plist" style={{ maxHeight: 320 }}>
+              {MISSIONS.map((m) => {
+                const ok = doneMissions.includes(m.id)
+                return (
+                  <div className="row" key={m.id}>
+                    <span>{ok ? '✅' : '⬜'} {m.title}</span>
+                    <span className="val">{ok ? t('done') : `¥${m.reward}`}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {page === 'lang' && (
+          <div className="box">
+            <div className="boxtitle">{t('language')}</div>
+            <div className="agrid c3">
+              {LANGS.map((l) => (
+                <button key={l.id} className={`abtn ${lang === l.id ? 'on' : ''}`} onClick={() => setLang(l.id)}>{l.label}</button>
+              ))}
+            </div>
+            <p className="sub">Menus and buttons are translated. Mission text and some details are still in English.</p>
+          </div>
+        )}
+
         {page === 'status' && (
           <div className="box">
             <div className="boxtitle">Status</div>
+            <div className="row"><span className="lbl">{t('money')}</span><span>¥{money}</span></div>
             <div className="row"><span className="lbl">Place</span><span>{runtime.locationName}</span></div>
             <div className="row"><span className="lbl">Time</span><span>{formatHour(hour)}</span></div>
             <div className="row"><span className="lbl">Weather</span><span>{weather}</span></div>

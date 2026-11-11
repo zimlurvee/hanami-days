@@ -3,22 +3,22 @@ import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { runtime } from '@/game/runtime'
 import { useState } from 'react'
-import { useProps, PROP_KINDS } from '@/stores/propsStore'
-import { putProp } from '@/game/props/props'
+import { ITEMS, MAX_ITEMS, useItems } from '@/stores/itemsStore'
+import { useT } from '@/stores/langStore'
 
 const POSES = [
-  { id: 1, label: '👋 Wave' },
-  { id: 2, label: '🙌 Cheer' },
-  { id: 3, label: '🧘 Sit' },
-  { id: 4, label: '🙇 Bow' },
-  { id: 0, label: '✕ Stop' },
+  { id: 1, label: '👋', key: 'wave' },
+  { id: 2, label: '🙌', key: 'cheer' },
+  { id: 3, label: '🧘', key: 'sit' },
+  { id: 4, label: '🙇', key: 'bow' },
+  { id: 0, label: '✕', key: 'stop' },
 ]
 
-const TABS: { id: CharaTab; label: string }[] = [
-  { id: 'camera', label: 'Camera, Effect' },
-  { id: 'chara', label: 'Chara Edit' },
-  { id: 'pose', label: 'Pose mode' },
-  { id: 'item', label: 'Item' },
+const TABS: { id: CharaTab; key: string }[] = [
+  { id: 'camera', key: 'camera' },
+  { id: 'chara', key: 'charaEdit' },
+  { id: 'pose', key: 'pose' },
+  { id: 'item', key: 'item' },
 ]
 
 /**
@@ -36,15 +36,18 @@ export function CharaEditPanel() {
   const setSize = useCharacter((s) => s.setSize)
   const [zoom, setZoom] = useState(runtime.cam.zoom)
   const [pose, setPose] = useState(runtime.pose)
+  const worn = useItems((s) => s.worn)
+  const toggleItem = useItems((s) => s.toggle)
+  const t = useT()
   if (!tab) return null
 
   return (
     <aside className="charapanel" aria-label="Chara Edit">
       <div className="ctabs">
-        {TABS.map((t) => (
-          <button key={t.id} className={`pill ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>
+        {TABS.map((tb) => (
+          <button key={tb.id} className={`pill ${tab === tb.id ? 'on' : ''}`} onClick={() => setTab(tb.id)}>{t(tb.key)}</button>
         ))}
-        <button className="pill" onClick={() => setTab(null)}>_Hide</button>
+        <button className="pill" onClick={() => setTab(null)}>{t('hide')}</button>
       </div>
 
       <div className="cbody">
@@ -91,13 +94,23 @@ export function CharaEditPanel() {
             <div className="boxtitle">Pose mode</div>
             <div className="agrid c3">
               {POSES.map((po) => (
-                <button key={po.id} className={`abtn ${pose === po.id ? 'on' : ''}`} onClick={() => { runtime.pose = po.id; setPose(po.id) }}>{po.label}</button>
+                <button key={po.id} className={`abtn ${pose === po.id ? 'on' : ''}`} onClick={() => { runtime.pose = po.id; setPose(po.id) }}>{po.label} {t(po.key)}</button>
               ))}
             </div>
             <p className="sub">Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. Poses work on the School Girl and OC; the Student only stands.</p>
           </>
         )}
-        {tab === 'item' && <p className="sub">Items you can hold and wear (bags, food, accessories) are planned. For objects to place in the world, see Menu → Props.</p>}
+        {tab === 'item' && (
+          <>
+            <div className="boxtitle">{t('item')}</div>
+            <div className="agrid">
+              {ITEMS.map((it) => (
+                <button key={it.id} className={`abtn ${worn.includes(it.id) ? 'on' : ''}`} onClick={() => toggleItem(it.id)}>{it.icon} {it.label}</button>
+              ))}
+            </div>
+            <p className="sub">{t('putOn')} (max {MAX_ITEMS}). Other players see what you wear. Accessories show on the School Girl and OC. Objects to place in the world are in Menu → Props.</p>
+          </>
+        )}
       </div>
     </aside>
   )

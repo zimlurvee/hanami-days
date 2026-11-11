@@ -1,5 +1,5 @@
 import { PLAYER } from '../config.js'
-import { cleanCharacter, cleanName, cleanSize } from '../systems/validation.js'
+import { cleanCharacter, cleanItems, cleanName, cleanSize } from '../systems/validation.js'
 import { normalizeCode } from '../systems/code.js'
 
 const err = (conn, code, msg) => {
@@ -11,6 +11,7 @@ function profile(msg) {
     name: cleanName(msg.name) || 'Guest',
     character: cleanCharacter(msg.character),
     size: cleanSize(msg.size),
+    items: cleanItems(msg.items),
   }
 }
 
@@ -75,7 +76,7 @@ export function dispatch(mgr, conn, msg) {
   switch (msg.t) {
     case 'move': room.handleMove(player, msg); break
     case 'chat': room.handleChat(player, msg.text); break
-    case 'appearance': room.handleAppearance(player, cleanCharacter(msg.character), cleanSize(msg.size)); break
+    case 'appearance': room.handleAppearance(player, cleanCharacter(msg.character), cleanSize(msg.size), cleanItems(msg.items)); break
     case 'prop': room.handlePropAdd(player, msg); break
     case 'propdel': room.handlePropDel(player, String(msg.id)); break
     case 'propclear': room.handlePropClear(player, !!msg.all); break

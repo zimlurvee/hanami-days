@@ -73,7 +73,7 @@ export class Room {
   }
 
   playerView(p) {
-    return { id: p.id, name: p.name, character: p.character, size: p.size, x: p.x, y: p.y, z: p.z, yaw: p.yaw }
+    return { id: p.id, name: p.name, character: p.character, size: p.size, items: p.items, x: p.x, y: p.y, z: p.z, yaw: p.yaw }
   }
 
   // ------------------------------------------------------------- messaging
@@ -125,7 +125,7 @@ export class Room {
     return `${name.slice(0, 12)}-${randomId(2)}`
   }
 
-  addPlayer(conn, { name, character, size }) {
+  addPlayer(conn, { name, character, size, items = [] }) {
     const p = {
       id: randomId(4),
       token: randomId(12),
@@ -133,6 +133,7 @@ export class Room {
       name: this.uniqueName(name),
       character,
       size,
+      items,
       x: 0, y: 0, z: 0, yaw: 0, speed: 0, grounded: true, vy: 0,
       budget: 0,
       lastMoveAt: Date.now(),
@@ -306,10 +307,11 @@ export class Room {
     this.broadcast({ t: 'props', props: this.props })
   }
 
-  handleAppearance(p, character, size) {
+  handleAppearance(p, character, size, items) {
     p.character = character
     p.size = size
-    this.broadcast({ t: 'papp', id: p.id, character, size })
+    p.items = items
+    this.broadcast({ t: 'papp', id: p.id, character, size, items })
   }
 
   handleChat(p, text) {

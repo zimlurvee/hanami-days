@@ -14,6 +14,8 @@ export interface AvatarAnim {
   size?: number
   /** 0 none, 1 wave, 2 cheer, 3 sit, 4 bow */
   pose?: number
+  /** Worn accessory ids (other players). Local player reads the items store. */
+  items?: string[]
 }
 
 interface Props {

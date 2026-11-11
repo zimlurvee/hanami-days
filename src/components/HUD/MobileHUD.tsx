@@ -7,6 +7,7 @@ import { analog, cycleZoom, lookBy, touchInteract, touchJump } from '@/game/inpu
 import { Minimap } from './Minimap'
 import { putProp } from '@/game/props/props'
 import { OnlineHUD } from '@/components/Multiplayer/OnlineHUD'
+import { useMissions } from '@/stores/missionsStore'
 import { formatHour } from '@/components/Menus/GameMenu'
 
 const RADIUS = 46
@@ -85,6 +86,7 @@ function Btn({ cls, label, onPress, soon, icon }: BtnProps) {
 export function MobileHUD() {
   const setPaused = useApp((s) => s.setPaused)
   const setChatOpen = useApp((s) => s.setChatOpen)
+  const money = useMissions((s) => s.money)
   const setCharaEdit = useApp((s) => s.setCharaEdit)
   const setPhoto = useApp((s) => s.setPhoto)
   const toast = useApp((s) => s.showToast)
@@ -107,11 +109,11 @@ export function MobileHUD() {
       <div className="mtop">
         <Btn cls="round" label="MENU" icon="☰" onPress={() => setPaused(true)} />
         <Btn cls="round" label="Radar" onPress={() => set('showMinimap', !showMap)} />
-        <Btn cls="round" label="" icon="🏆" soon="Missions are coming later." />
+        <Btn cls="round" label="" icon="🏆" onPress={() => { useApp.getState().setMenuPage('missions'); setPaused(true) }} />
         <Btn cls="round" label="" icon="?" onPress={() => toast('Left stick: move · Drag the screen: look · MENU: areas, character, weather')} />
         {inRoom && <Btn cls="round" label="" icon="💬" onPress={() => setChatOpen(true)} />}
       </div>
-      <div className="mtime">{formatHour(hour)}</div>
+      <div className="mtime">{formatHour(hour)} ¥{money}</div>
       <Btn cls="round mitem" label="ITEM" icon="🎒" onPress={() => setCharaEdit('item')} />
       <Btn cls="pill mcharaedit" label="Chara Edit" onPress={() => setCharaEdit('chara')} />
 

@@ -145,6 +145,10 @@ assert.equal(snap.p.find((r) => r[0] === jg.you.id)[8], 3); ok('pose synced in s
 g.send({ t: 'leave' }); await sleep(100)
 assert.equal(srv.mgr.find(jg.room.code).props.length, 0); ok('props removed when owner leaves')
 
+// accessories
+g2.send({ t: 'appearance', character: 'oc', size: 1, items: ['cap', 'bag', 'laser', 'cap'] })
+const pap = await g2.next('papp'); assert.deepEqual(pap.items, ['cap', 'bag']); ok('items validated and synced')
+
 // health
 const h = await (await fetch(`http://localhost:${srv.port}/health`)).json()
 assert.equal(h.ok, true); ok('health endpoint')
