@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { AvatarAnim } from './Avatar'
 import { characterInfo, type BoneNames, type CharacterId, type CharacterInfo } from './models'
-import { CLIP_BASE, emoteFor, getPack, loadPack } from './clips'
+import { CLIP_BASE, emoteFor, getPack, loadPack, type Clip } from './clips'
 import { useCharacter } from '@/stores/characterStore'
 import { useItems } from '@/stores/itemsStore'
 import { Accessories } from './Accessories'
@@ -28,6 +28,8 @@ interface AnimNode {
   arm: 0 | 1 | 2
   /** Also driven by the procedural walk cycle (so the clip blends over the current value, not the rest pose) */
   proc: boolean
+  /** Smoothed local rotation, so clips cross-fade into each other */
+  cur: THREE.Quaternion
 }
 
 interface Rig {
@@ -140,7 +142,7 @@ function buildRig(model: THREE.Object3D, names: BoneNames, animBones: CharacterI
     }
     const arm = /^(Left)(Arm|ForeArm|Hand)$/.test(a.key) ? 1 : /^(Right)(Arm|ForeArm|Hand)$/.test(a.key) ? 2 : 0
     idxOf.set(bone, rig.anim.length)
-    rig.anim.push({ bone: { bone, rest: bone.quaternion.clone() }, src: a.src, srcIdx: -1, parent, arm, proc: procBones.has(bone) })
+    rig.anim.push({ bone: { bone, rest: bone.quaternion.clone() }, src: a.src, srcIdx: -1, parent, arm, proc: procBones.has(bone), cur: bone.quaternion.clone() })
   }
   return rig
 }
@@ -173,9 +175,10 @@ const _qT = new THREE.Quaternion()
 
 /**
  * Plays a baked clip frame on the rig. Every bone gets E = (world delta from the pack) x (arm-down offset),
- * expressed as a rotation relative to its posed parent, then blended in by `w`.
+ * expressed as a rotation relative to its posed parent. Bones ease toward that target at rate `k`
+ * (0..1 per frame), which cross-fades between clips.
  */
-function applyClip(model: THREE.Object3D, rig: Rig, boneNames: string[], q: Float32Array, nb: number, f0: number, f1: number, a: number, w: number) {
+function applyClip(model: THREE.Object3D, rig: Rig, boneNames: string[], q: Float32Array, nb: number, f0: number, f1: number, a: number, k: number) {
   const flip = rig.forward < 0
   for (let i = 0; i < rig.anim.length; i++) {
     const n = rig.anim[i]
@@ -193,8 +196,8 @@ function applyClip(model: THREE.Object3D, rig: Rig, boneNames: string[], q: Floa
     if (n.parent >= 0) _qR.copy(_qE[n.parent]).invert().premultiply(E)
     else _qR.copy(E)
     poseTo(model, n.bone, _qR, _qT)
-    if (!n.proc) n.bone.bone.quaternion.copy(n.bone.rest)
-    n.bone.bone.quaternion.slerp(_qT, w)
+    n.cur.slerp(_qT, k)
+    n.bone.bone.quaternion.copy(n.cur)
   }
 }
 
@@ -229,6 +232,17 @@ export function GlbAvatar({ id, anim }: Props) {
         if ((o as THREE.SkinnedMesh).isSkinnedMesh) (o as THREE.SkinnedMesh).skeleton.pose()
       })
     }
+    // Hair that is a separate, unskinned mesh would stay behind when the head turns: parent it to the head bone
+    if (info.headProps) {
+      model.updateWorldMatrix(true, true)
+      const headRe = info.anim?.find((a) => a.key === 'Head')?.re
+      const head = headRe ? findBone(model, headRe) : undefined
+      if (head) {
+        const hair: THREE.Object3D[] = []
+        model.traverse((o) => { if (info.headProps!.test(o.name)) hair.push(o) })
+        for (const h of hair) head.attach(h)
+      }
+    }
     const rig = buildRig(model, info.bones!, info.anim)
 
     // Fit to height, stand on y = 0, centre on x / z
@@ -251,7 +265,7 @@ export function GlbAvatar({ id, anim }: Props) {
   const acc = useRef<THREE.Group>(null)
   const [worn, setWorn] = useState<string[]>([])
   const wornKey = useRef('')
-  const state = useRef({ phase: 0, legSwing: 0, knee: 0, armSwing: 0, armUp: 0, bob: 0, drop: 0, pw: 0, poseLast: 0, t: 0, ct: 0, prev: 0, clipOn: false })
+  const state = useRef({ phase: 0, legSwing: 0, knee: 0, armSwing: 0, armUp: 0, bob: 0, drop: 0, pw: 0, poseLast: 0, t: 0, ct: 0, lt: 0, prev: 0, hx: 0, hy: 0, hz: 0, loco: '' })
 
   // The animation pack is small; fetch it once when the first rigged character shows up
   useEffect(() => { if (info.anim?.length) void loadPack() }, [info])
@@ -299,26 +313,51 @@ export function GlbAvatar({ id, anim }: Props) {
     const unitSize = sc / unit
     s.drop = pid === 3 ? pw * 0.46 * (info.height ?? DEFAULT_HEIGHT) * unitSize : 0
 
-    // Clip emotes (animation pack): advance the clip, work out the frame pair and the hip movement
+    // Animation pack: emotes while posing, otherwise idle / walk / run on the ground
     const pack = getPack()
-    const emote = pid >= CLIP_BASE ? emoteFor(pid) : undefined
-    const clip = emote && pack ? pack.clips[emote.clip] : undefined
-    if (poseId >= CLIP_BASE && s.prev !== poseId) s.ct = 0
+    let clip: Clip | undefined
+    let hold = false
+    let loco = false
+    if (pack && rig.anim.length > 0) {
+      if (poseId >= CLIP_BASE) {
+        const emote = emoteFor(poseId)
+        clip = emote ? pack.clips[emote.clip] : undefined
+        hold = !!emote?.hold
+      } else if (poseId === 0 && anim.grounded && s.pw < 0.05) {
+        loco = true
+        const sp = moving ? anim.speed : 0
+        let name = 'idle_01'
+        let rate = 1
+        if (sp > 0.15) {
+          if (sp < 2.6) { name = 'walk_00'; rate = Math.max(0.5, sp / 1.4) }
+          else if (sp < 5) { name = 'run_00'; rate = Math.min(1.5, Math.max(0.7, sp / 3.8)) }
+          else { name = 'sprint_00'; rate = Math.min(1.6, Math.max(0.8, sp / 5.5)) }
+        }
+        clip = pack.clips[name]
+        if (clip) s.lt += dt * rate
+      }
+    }
+    if (poseId >= CLIP_BASE) {
+      if (s.prev !== poseId) s.ct = 0
+      s.ct += dt
+    }
     s.prev = poseId
     let f0 = 0, f1 = 0, fa = 0
-    let hx = 0, hy = 0, hz = 0
-    const clipActive = !!clip && pw > 0.002 && rig.anim.length > 0
-    if (clipActive && clip && pack) {
-      if (poseId >= CLIP_BASE) s.ct += dt
-      const tt = emote!.hold ? Math.min(s.ct, clip.dur) : clip.dur > 0 ? s.ct % clip.dur : 0
+    let tx = 0, ty = 0, tz = 0
+    if (clip && pack) {
+      const tt = loco ? s.lt % clip.dur : hold ? Math.min(s.ct, clip.dur) : s.ct % clip.dur
       const x = Math.min(clip.n - 1, tt * clip.fps)
       f0 = Math.floor(x); f1 = Math.min(f0 + 1, clip.n - 1); fa = x - f0
-      const kHip = (rig.hipM / pack.hipHeight) * unitSize * pw
-      hx = f * kHip * (clip.hips[f0 * 3] + (clip.hips[f1 * 3] - clip.hips[f0 * 3]) * fa)
-      hy = kHip * (clip.hips[f0 * 3 + 1] + (clip.hips[f1 * 3 + 1] - clip.hips[f0 * 3 + 1]) * fa)
-      hz = f * kHip * (clip.hips[f0 * 3 + 2] + (clip.hips[f1 * 3 + 2] - clip.hips[f0 * 3 + 2]) * fa)
+      const kHip = (rig.hipM / pack.hipHeight) * unitSize
+      const lerpH = (c: number) => clip!.hips[f0 * 3 + c] + (clip!.hips[f1 * 3 + c] - clip!.hips[f0 * 3 + c]) * fa
+      tx = f * kHip * lerpH(0)
+      ty = kHip * lerpH(1)
+      tz = loco ? 0 : f * kHip * lerpH(2) // locomotion stays in place; the capsule does the travelling
     }
-    holder.position.set(off.x * sc + hx, off.y * sc + s.bob - s.drop + hy, off.z * sc + hz)
+    const kh = 1 - Math.exp(-10 * dt)
+    s.hx += (tx - s.hx) * kh; s.hy += (ty - s.hy) * kh; s.hz += (tz - s.hz) * kh
+    const hx = s.hx, hy = s.hy, hz = s.hz
+    holder.position.set(off.x * sc + hx, off.y * sc + (clip ? 0 : s.bob) - s.drop + hy, off.z * sc + hz)
     const lerp = (a: number, b: number) => a + (b - a) * pw
 
     // Walk-cycle targets (forward is +Z in model space when f = 1; a negative X rotation swings a hanging leg forward)
@@ -367,13 +406,14 @@ export function GlbAvatar({ id, anim }: Props) {
     pose(model, rig.upArmL, _qf.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
     pose(model, rig.upArmR, _qg.premultiply(_qh.copy(rotX(-f * bow * 0.7, _qe))))
 
-    // Animation-pack emote on top of the procedural pose
-    if (clipActive && clip && pack) {
-      applyClip(model, rig, pack.bones, clip.q, pack.bones.length, f0, f1, fa, pw)
-      s.clipOn = true
-    } else if (s.clipOn) {
-      for (const n of rig.anim) if (!n.proc) n.bone.bone.quaternion.copy(n.bone.rest)
-      s.clipOn = false
+    // Animation pack on top of the procedural pose (which keeps handling jumps and the simple poses)
+    if (clip && pack) {
+      applyClip(model, rig, pack.bones, clip.q, pack.bones.length, f0, f1, fa, 1 - Math.exp(-(loco ? 16 : 9) * dt))
+    } else {
+      for (const n of rig.anim) {
+        if (!n.proc) n.bone.bone.quaternion.copy(n.bone.rest)
+        n.cur.copy(n.bone.bone.quaternion) // so the next clip eases in from what is on screen
+      }
     }
 
     // Accessories follow the size setting and the sitting drop

@@ -4,7 +4,7 @@ import { Physics } from '@react-three/rapier'
 import * as THREE from 'three'
 import { WorldMesh } from './world/WorldMesh'
 import { WorldColliders } from './world/WorldColliders'
-import { Trees } from './world/Trees'
+import { SakuraForest } from './world/SakuraForest'
 import { Water } from './world/Water'
 import { Districts } from './world/Districts'
 import { Environment } from './world/Environment'
@@ -12,7 +12,6 @@ import { PlayerController } from './characters/PlayerController'
 import { RemotePlayers } from './characters/RemotePlayers'
 import { Props } from './props/Props'
 import { Petals } from './world/Petals'
-import { CherryTrees } from './world/CherryTrees'
 import { useNet } from '@/net/net'
 import { attachInput } from './input/input'
 import { useSettings } from '@/stores/settingsStore'
@@ -51,7 +50,7 @@ export function GameCanvas() {
       <Suspense fallback={null}>
         <Physics gravity={[0, -9.81, 0]} timeStep="vary" paused={paused}>
           <WorldMesh />
-          <Trees />
+          <SakuraForest />
           <Water />
           <WorldColliders />
           {/* Own boundary so the town is playable while the GLB buildings stream in */}
@@ -62,7 +61,6 @@ export function GameCanvas() {
           <RemotePlayers />
           <Props />
           <Petals />
-          <CherryTrees />
         </Physics>
       </Suspense>
     </Canvas>

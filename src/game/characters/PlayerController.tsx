@@ -4,7 +4,7 @@ import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type Rapier
 import * as THREE from 'three'
 import type { AvatarAnim } from './Avatar'
 import { CharacterModel } from './CharacterModel'
-import { analog, isDown, consumeJump } from '@/game/input/input'
+import { analog, isDown, consumeJump, consumeJumpPeek } from '@/game/input/input'
 import { updateThirdPersonCamera } from '@/game/camera/thirdPerson'
 import { runtime } from '@/game/runtime'
 import { PLAYER_SPAWN, locationAt } from '@/game/world'
@@ -105,6 +105,9 @@ export function PlayerController() {
         if (stick) topSpeed = mag > 0.85 ? RUN : WALK * Math.max(0.35, mag / 0.85)
         else topSpeed = act && isDown('run') ? RUN : WALK
       }
+
+      // Any move or jump input ends a pose right away (not only once we are actually fast enough)
+      if (runtime.pose && (len > 0.1 || consumeJumpPeek())) runtime.pose = 0
 
       // Smooth acceleration (snappier on the ground, floatier in the air)
       const k = 1 - Math.exp(-(s.grounded ? 14 : 3.5) * dt)

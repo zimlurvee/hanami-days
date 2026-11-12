@@ -2,7 +2,7 @@ import { useApp, type CharaTab } from '@/stores/appStore'
 import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { runtime } from '@/game/runtime'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ITEMS, MAX_ITEMS, useItems } from '@/stores/itemsStore'
 import { useT } from '@/stores/langStore'
 import { CLIP_BASE, EMOTES, loadPack } from '@/game/characters/clips'
@@ -40,6 +40,11 @@ export function CharaEditPanel() {
   const worn = useItems((s) => s.worn)
   const toggleItem = useItems((s) => s.toggle)
   const t = useT()
+  // Walking or jumping clears the pose in the game: keep the highlighted button in step
+  useEffect(() => {
+    const id = setInterval(() => setPose(runtime.pose), 120)
+    return () => clearInterval(id)
+  }, [])
   if (!tab) return null
 
   return (

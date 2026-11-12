@@ -61,6 +61,8 @@ export interface CharacterInfo {
   resetToBindPose?: boolean
   /** Bone table for the baked animation pack (public/anim/satomi.json). */
   anim?: AnimBone[]
+  /** Unskinned meshes (hair) that must ride on the head bone, matched by node name. */
+  headProps?: RegExp
   /** Attribution text required by the model's licence. */
   credit?: string
 }
@@ -106,6 +108,7 @@ export const CHARACTERS: CharacterInfo[] = [
     credit: '"Random oc" by Delenapro (sketchfab.com/Delenapro), CC-BY-4.0',
     height: 1.55,
     anim: ANIM_OC,
+    headProps: /^CoxitoHair$/,
     bones: {
       hips: /^Hips_/,
       upLegL: /^LeftUpLeg_/,

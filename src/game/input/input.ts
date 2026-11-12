@@ -38,6 +38,11 @@ export function isDown(action: KeyAction): boolean {
   return down.has(code)
 }
 
+/** True if a jump is waiting, without using it up. */
+export function consumeJumpPeek(): boolean {
+  return jumpQueued
+}
+
 export function consumeJump(): boolean {
   const v = jumpQueued
   jumpQueued = false
