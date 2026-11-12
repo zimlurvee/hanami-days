@@ -279,3 +279,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .photo-exit { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; background: #ee5b7f; color: #fff; font-size: 20px; font-weight: 900; z-index: 40; cursor: pointer; }
 .mcharaedit { top: calc(var(--u) * 23) !important; left: calc(var(--u) * 1.2); }
 [data-device='mobile'] .charapanel { width: min(300px, 50vw); }
+
+/* Emote list in the Pose tab can be long: let it scroll inside the panel */
+.charapanel .emotes { max-height: 34vh; overflow-y: auto; padding-right: 4px; }

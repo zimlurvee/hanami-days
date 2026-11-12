@@ -5,6 +5,7 @@ import { runtime } from '@/game/runtime'
 import { useState } from 'react'
 import { ITEMS, MAX_ITEMS, useItems } from '@/stores/itemsStore'
 import { useT } from '@/stores/langStore'
+import { CLIP_BASE, EMOTES, loadPack } from '@/game/characters/clips'
 
 const POSES = [
   { id: 1, label: '👋', key: 'wave' },
@@ -97,7 +98,15 @@ export function CharaEditPanel() {
                 <button key={po.id} className={`abtn ${pose === po.id ? 'on' : ''}`} onClick={() => { runtime.pose = po.id; setPose(po.id) }}>{po.label} {t(po.key)}</button>
               ))}
             </div>
-            <p className="sub">Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. Poses work on the School Girl and OC; the Student only stands.</p>
+            <div className="boxtitle">Emotes</div>
+            <div className="agrid c3 emotes">
+              {EMOTES.map((em, i) => (
+                <button key={em.clip} className={`abtn ${pose === CLIP_BASE + i ? 'on' : ''}`}
+                  onMouseEnter={() => void loadPack()}
+                  onClick={() => { runtime.pose = CLIP_BASE + i; setPose(CLIP_BASE + i) }}>{em.label}</button>
+              ))}
+            </div>
+            <p className="sub">Emotes use the Satomi Makise animation pack by S0ul2450Official (see Credits). Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. Poses work on the School Girl and OC; the Student only stands.</p>
           </>
         )}
         {tab === 'item' && (
