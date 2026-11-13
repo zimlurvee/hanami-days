@@ -6,7 +6,7 @@ import { buildDistricts } from './districts'
 
 export const WORLD_HALF = 200
 /** Just inside the school gate, facing south toward the road. */
-export const PLAYER_SPAWN = { x: -60, y: 0.5, z: -47 }
+export const PLAYER_SPAWN = { x: -38, y: 0.5, z: -51 }
 
 let cached: WorldBuilder | null = null
 

@@ -7,6 +7,7 @@ import { WorldColliders } from './world/WorldColliders'
 import { SakuraForest } from './world/SakuraForest'
 import { Water } from './world/Water'
 import { Districts } from './world/Districts'
+import { SchoolModel } from './world/SchoolModel'
 import { Environment } from './world/Environment'
 import { PlayerController } from './characters/PlayerController'
 import { RemotePlayers } from './characters/RemotePlayers'
@@ -50,6 +51,7 @@ export function GameCanvas() {
       <Suspense fallback={null}>
         <Physics gravity={[0, -9.81, 0]} timeStep="vary" paused={paused}>
           <WorldMesh />
+          <SchoolModel />
           <SakuraForest />
           <Water />
           <WorldColliders />

@@ -14,12 +14,16 @@ export interface Area {
 }
 
 export const AREAS: Area[] = [
-  { id: 'gate', label: 'School gate', x: -60, y: 0.05, z: -47 },
-  { id: 'f1', label: '1F', x: -60, y: 0.05, z: -62 },
-  { id: 'f2', label: '2F', x: -60, y: 4.05, z: -68 },
-  { id: 'roof', label: 'Rooftop', x: -60, y: 8.05, z: -70 },
-  { id: 'gym', label: 'Gym', x: -10, y: 0.05, z: -81 },
-  { id: 'yard', label: 'School yard', x: -70, y: 0.05, z: -95 },
+  { id: 'gate', label: 'School gate', x: -38, y: 0.08, z: -52 },
+  { id: 'f1', label: '1F', x: -38, y: 0.08, z: -66 },
+  { id: 'f2', label: '2F', x: -38, y: 3.7, z: -70 },
+  { id: 'roof', label: 'Rooftop', x: -37.2, y: 7.3, z: -78.2 },
+  { id: 'courtyard', label: 'Courtyard', x: -39.3, y: 0.14, z: -92.8 },
+  { id: 'gym', label: 'Gym', x: -20, y: 0.08, z: -172 },
+  { id: 'yard', label: 'School yard', x: -54.5, y: 0.3, z: -170 },
+  { id: 'track', label: 'Running track', x: -38, y: 0.09, z: -141 },
+  { id: 'schoolpool', label: 'School pool', x: 18, y: 0.11, z: -105 },
+  { id: 'maze', label: 'Hedge maze', x: -95, y: 0.08, z: -60 },
   { id: 'pool', label: 'Pool', x: 150, y: 0.35, z: 16 },
   { id: 'home', label: 'Home', x: 134, y: 0.05, z: 100 },
   { id: 'suburb', label: 'Suburb', x: 160, y: 0.05, z: 92 },

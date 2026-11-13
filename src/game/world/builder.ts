@@ -113,13 +113,13 @@ export class WorldBuilder {
   }
 
   /** Box by centre x/z and bottom y. */
-  box(x: number, y: number, z: number, w: number, h: number, d: number, color: number, collide = true) {
-    this.boxes.push({ x, y, z, w, h, d, color, collide })
+  box(x: number, y: number, z: number, w: number, h: number, d: number, color: number, collide = true, visible = true) {
+    this.boxes.push({ x, y, z, w, h, d, color, collide, ...(visible ? {} : { visible: false }) })
   }
 
   /** Box by corner coordinates. */
-  rect(x0: number, y: number, z0: number, x1: number, h: number, z1: number, color: number, collide = true) {
-    this.box((x0 + x1) / 2, y, (z0 + z1) / 2, Math.abs(x1 - x0), h, Math.abs(z1 - z0), color, collide)
+  rect(x0: number, y: number, z0: number, x1: number, h: number, z1: number, color: number, collide = true, visible = true) {
+    this.box((x0 + x1) / 2, y, (z0 + z1) / 2, Math.abs(x1 - x0), h, Math.abs(z1 - z0), color, collide, visible)
   }
 
   /** Wall running along X at fixed z. Gaps are doorways with a lintel above. */

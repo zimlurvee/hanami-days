@@ -1,0 +1,8 @@
+School map: "School Zimlurvee Blend", built with School Creator V2 by Joaquito
+(https://www.mediafire.com/file/wh1kkgnypsu7ryy/School_Creator_v2.zip/file)
+Joaquito: https://discord.com/invite/98sJVEN5bX
+Licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+The assets are credited to Joaquito as requested on the Yandere Simulator Fanon wiki page for School Creator V2.
+
+This work is based on the original model. Changes: textures resized and packed into atlases, repeated
+objects stored once, geometry quantised, rotated, scaled and placed in the town (tools/school/bake_school.py).
