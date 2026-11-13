@@ -30,8 +30,8 @@ function suburb(b: WorldBuilder) {
   const north = ['a', 'e', 'j', 'n']
   const south = ['c', 'g', 'l', 't']
   lots.forEach((x, i) => {
-    b.model(SUB + north[i], x, 78, 0, 8, SUB_COLOR) // fronts face south, toward the street
-    b.model(SUB + south[i], x, 106, Math.PI, 8, SUB_COLOR) // fronts face north
+    b.model(SUB + north[i], x, 78, Math.PI, 8, SUB_COLOR) // fronts face south, toward the street
+    b.model(SUB + south[i], x, 106, 0, 8, SUB_COLOR) // fronts face north
   })
   // Trees in the gaps between houses
   for (const x of [142, 158, 174, 190]) {

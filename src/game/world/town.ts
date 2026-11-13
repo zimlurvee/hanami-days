@@ -193,8 +193,8 @@ const HOUSE_COLORS = [0xe3b9a0, 0xd9c7b0, 0xc9d6c0, 0xcdd4e3]
 
 function kenneyHouse(b: WorldBuilder, x: number, z0: number, i: number) {
   const key = 'suburban/building-type-' + HOUSE_MODELS[(i * 3 + 1) % HOUSE_MODELS.length]
-  // Lot is 12 x 10 starting at (x, z0); fronts face -z toward the road
-  b.model(key, x + 6, z0 + 5, Math.PI, 8, HOUSE_COLORS[i % HOUSE_COLORS.length])
+  // Lot is 12 x 10 starting at (x, z0); fronts face -z toward the road (the model's own front is +z, hence no turn)
+  b.model(key, x + 6, z0 + 5, 0, 8, HOUSE_COLORS[i % HOUSE_COLORS.length])
   b.rect(x + 5.1, 0, z0 - 3, x + 6.9, 0.03, z0, C.sidewalk, false) // front path
 }
 

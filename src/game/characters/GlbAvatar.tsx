@@ -329,8 +329,8 @@ export function GlbAvatar({ id, anim }: Props) {
         let name = 'idle_01'
         let rate = 1
         if (sp > 0.15) {
-          if (sp < 2.6) { name = 'walk_00'; rate = Math.max(0.5, sp / 1.4) }
-          else if (sp < 5) { name = 'run_00'; rate = Math.min(1.5, Math.max(0.7, sp / 3.8)) }
+          // walk_00 for walking, sprint_00 for running (keyboard Shift / full stick)
+          if (sp < 5) { name = 'walk_00'; rate = Math.min(1.8, Math.max(0.6, sp / 1.9)) }
           else { name = 'sprint_00'; rate = Math.min(1.6, Math.max(0.8, sp / 5.5)) }
         }
         clip = pack.clips[name]
