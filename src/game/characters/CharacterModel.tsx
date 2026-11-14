@@ -1,36 +1,28 @@
 import { Component, Suspense, type ReactNode } from 'react'
-import { Avatar, type AvatarAnim } from './Avatar'
+import type { AvatarAnim } from './Avatar'
 import { GlbAvatar } from './GlbAvatar'
-import { DEFAULT_APPEARANCE } from './appearance'
 import { useCharacter } from '@/stores/characterStore'
 
-/** If a model file fails to load, fall back to the built-in character instead of crashing the scene. */
-class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+/** If the model file fails to load, draw nothing rather than crashing the scene. */
+class ModelBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() {
     return { failed: true }
   }
   componentDidCatch(err: unknown) {
-    console.error('Character model failed to load, using the built-in character.', err)
+    console.error('Character model failed to load.', err)
   }
   render() {
-    return this.state.failed ? this.props.fallback : this.props.children
+    return this.state.failed ? null : this.props.children
   }
 }
 
-/** The local player's visible body, chosen in Character Option or the pause menu. */
+/** The local player's visible body. */
 export function CharacterModel({ anim }: { anim: AvatarAnim }) {
   const id = useCharacter((s) => s.model)
-  const size = useCharacter((s) => s.size)
-  const builtIn = (
-    <group scale={size}>
-      <Avatar appearance={DEFAULT_APPEARANCE} anim={anim} />
-    </group>
-  )
-  if (id === 'student') return builtIn
   return (
-    <ModelBoundary key={id} fallback={builtIn}>
-      <Suspense fallback={builtIn}>
+    <ModelBoundary key={id}>
+      <Suspense fallback={null}>
         <GlbAvatar id={id} anim={anim} />
       </Suspense>
     </ModelBoundary>

@@ -1,9 +1,8 @@
 /**
- * Registry of playable character models. 'student' is the built-in procedural
- * character. The others are CC-BY-4.0 Sketchfab models stored in
- * public/models/characters/ (credits are shown in the Credits screen).
+ * Registry of playable character models: the OC, a CC-BY-4.0 Sketchfab model stored in
+ * public/models/characters/ (the credit is shown in the Credits screen).
  */
-export type CharacterId = 'student' | 'schoolgirl' | 'oc'
+export type CharacterId = 'oc'
 
 /** Regexes that pick out the bones the walk cycle drives. */
 export interface BoneNames {
@@ -39,16 +38,6 @@ const ANIM_OC: AnimBone[] = [
   ab('LeftUpLeg', /^LeftUpLeg_/), ab('LeftLeg', /^LeftLeg_\d+$/), ab('LeftFoot', /^LeftFoot_/), ab('LeftToes', /^LeftToes_\d+$/),
   ab('RightUpLeg', /^RightUpLeg_/), ab('RightLeg', /^RightLeg_\d+$/), ab('RightFoot', /^RightFoot_/), ab('RightToes', /^RightToes_\d+$/),
 ]
-// The school girl has one spine bone fewer (and an unused Upperchest bone whose pivot sits at the origin, so it is left alone)
-const ANIM_GIRL: AnimBone[] = [
-  ab('Hips', /^Hips_/), ab('Spine', /^Spine_/, 'Spine1'), ab('Chest', /^Chest_/, 'Spine3'),
-  ab('Neck', /^Neck_/), ab('Head', /^Head_/),
-  ab('LeftShoulder', /^L_Shoulder_/), ab('LeftArm', /^L_UpperArm_/), ab('LeftForeArm', /^L_LowerArm_/), ab('LeftHand', /^L_Hand_/),
-  ab('RightShoulder', /^R_ShouRder_/), ab('RightArm', /^R_UpperArm_/), ab('RightForeArm', /^R_RowerArm_/), ab('RightHand', /^R_Hand_/),
-  ab('LeftUpLeg', /^L_Upperleg/), ab('LeftLeg', /^L_Lowerleg/), ab('LeftFoot', /^L_Foot_/), ab('LeftToes', /^L_ToeBase/),
-  ab('RightUpLeg', /^R_UpperReg/), ab('RightLeg', /^R_RowerReg/), ab('RightFoot', /^R_Foot_/), ab('RightToes', /^R_ToeBase/),
-]
-
 export interface CharacterInfo {
   id: CharacterId
   label: string
@@ -68,38 +57,6 @@ export interface CharacterInfo {
 }
 
 export const CHARACTERS: CharacterInfo[] = [
-  {
-    id: 'student',
-    label: 'Hanami Student',
-    blurb: 'The built-in character. Simple and light.',
-  },
-  {
-    id: 'schoolgirl',
-    label: 'Anime School Girl',
-    blurb: 'Rigged anime-style student in a school uniform.',
-    url: '/models/characters/schoolgirl/scene.gltf',
-    credit:
-      '"Anime school girl (Rigged)" by darknessvoid403 (sketchfab.com/darknessvoid403), CC-BY-4.0',
-    // Saved in a crouching pose; its bind pose is a clean standing A-pose
-    resetToBindPose: true,
-    height: 1.45,
-    anim: ANIM_GIRL,
-    bones: {
-      hips: /^Hips_/,
-      upLegL: /^L_Upperleg/,
-      loLegL: /^L_Lowerleg/,
-      footL: /^L_Foot_/,
-      toeL: /^L_ToeBase/,
-      upLegR: /^R_UpperReg/,
-      loLegR: /^R_RowerReg/,
-      footR: /^R_Foot_/,
-      toeR: /^R_ToeBase/,
-      upArmL: /^L_UpperArm/,
-      handL: /^L_Hand_/,
-      upArmR: /^R_UpperArm/,
-      handR: /^R_Hand_/,
-    },
-  },
   {
     id: 'oc',
     label: 'Random OC',

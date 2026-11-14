@@ -1,5 +1,5 @@
 import { useApp, type CharaTab } from '@/stores/appStore'
-import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
+import { useCharacter } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { runtime } from '@/game/runtime'
 import { useEffect, useState } from 'react'
@@ -33,8 +33,6 @@ export function CharaEditPanel() {
   const setPhoto = useApp((s) => s.setPhoto)
   const model = useCharacter((s) => s.model)
   const setModel = useCharacter((s) => s.setModel)
-  const size = useCharacter((s) => s.size)
-  const setSize = useCharacter((s) => s.setSize)
   const [zoom, setZoom] = useState(runtime.cam.zoom)
   const [pose, setPose] = useState(runtime.pose)
   const worn = useItems((s) => s.worn)
@@ -80,16 +78,9 @@ export function CharaEditPanel() {
             <div className="agrid c3">
               {CHARACTERS.map((c) => (
                 <button key={c.id} className={`abtn ${model === c.id ? 'on' : ''}`} onClick={() => setModel(c.id)}>
-                  {c.id === 'student' ? 'Student' : c.id === 'schoolgirl' ? 'School Girl' : 'OC'}
+                  OC
                 </button>
               ))}
-            </div>
-            <div className="row">
-              <label className="lbl">Size</label>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="range" min={SIZE_MIN} max={SIZE_MAX} step={0.05} value={size} onChange={(e) => setSize(Number(e.target.value))} aria-label="Character size" />
-                <span className="val">{Math.round(size * 100)}%</span>
-              </span>
             </div>
             <p className="sub">Face, hair and outfit editing are planned.</p>
           </>
@@ -111,7 +102,7 @@ export function CharaEditPanel() {
                   onClick={() => { runtime.pose = CLIP_BASE + i; setPose(CLIP_BASE + i) }}>{em.label}</button>
               ))}
             </div>
-            <p className="sub">Emotes use the Satomi Makise animation pack by S0ul2450Official (see Credits). Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. Poses work on the School Girl and OC; the Student only stands.</p>
+            <p className="sub">Emotes use the Satomi Makise animation pack by S0ul2450Official (see Credits). Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. </p>
           </>
         )}
         {tab === 'item' && (
@@ -122,7 +113,7 @@ export function CharaEditPanel() {
                 <button key={it.id} className={`abtn ${worn.includes(it.id) ? 'on' : ''}`} onClick={() => toggleItem(it.id)}>{it.icon} {it.label}</button>
               ))}
             </div>
-            <p className="sub">{t('putOn')} (max {MAX_ITEMS}). Other players see what you wear. Accessories show on the School Girl and OC. Objects to place in the world are in Menu → Props.</p>
+            <p className="sub">{t('putOn')} (max {MAX_ITEMS}). Other players see what you wear. Objects to place in the world are in Menu → Props.</p>
           </>
         )}
       </div>

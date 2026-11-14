@@ -5,7 +5,7 @@ import { MISSIONS, useMissions } from '@/stores/missionsStore'
 import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { lockPointer } from '@/game/input/input'
-import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
+import { useCharacter } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { AREAS } from '@/game/world/areas'
 import { runtime } from '@/game/runtime'
@@ -40,8 +40,6 @@ export function GameMenu() {
   const { hour, weather, dayLengthSeconds, setHour, setWeather, setDayLength } = useWorld()
   const character = useCharacter((s) => s.model)
   const setCharacter = useCharacter((s) => s.setModel)
-  const size = useCharacter((s) => s.size)
-  const setSize = useCharacter((s) => s.setSize)
   const room = useNet((s) => s.room)
   const meId = useNet((s) => s.meId)
   const names = useNet((s) => s.names)
@@ -98,16 +96,9 @@ export function GameMenu() {
               <div className="agrid c3">
                 {CHARACTERS.map((c) => (
                   <button key={c.id} className={`abtn ${character === c.id ? 'on' : ''}`} onClick={() => setCharacter(c.id)}>
-                    {c.id === 'student' ? 'Student' : c.id === 'schoolgirl' ? 'School Girl' : 'OC'}
+                    OC
                   </button>
                 ))}
-              </div>
-              <div className="row">
-                <label className="lbl">Size</label>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input type="range" min={SIZE_MIN} max={SIZE_MAX} step={0.05} value={size} onChange={(e) => setSize(Number(e.target.value))} aria-label="Character size" />
-                  <span className="val">{Math.round(size * 100)}%</span>
-                </span>
               </div>
             </div>
           </>

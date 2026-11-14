@@ -1,5 +1,5 @@
 import { useApp } from '@/stores/appStore'
-import { useCharacter, SIZE_MIN, SIZE_MAX } from '@/stores/characterStore'
+import { useCharacter } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 
 /**
@@ -11,8 +11,6 @@ export function CharacterSelect() {
   const go = useApp((s) => s.go)
   const model = useCharacter((s) => s.model)
   const setModel = useCharacter((s) => s.setModel)
-  const size = useCharacter((s) => s.size)
-  const setSize = useCharacter((s) => s.setSize)
 
   return (
     <div className="screen">
@@ -35,14 +33,6 @@ export function CharacterSelect() {
               {c.credit && <span className="char-credit">{c.credit}</span>}
             </button>
           ))}
-        </div>
-
-        <div className="row" style={{ marginTop: 14 }}>
-          <label className="lbl">Size<span className="desc">Make your character smaller or taller</span></label>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="range" min={SIZE_MIN} max={SIZE_MAX} step={0.05} value={size} onChange={(e) => setSize(Number(e.target.value))} aria-label="Character size" />
-            <span className="val">{Math.round(size * 100)}%</span>
-          </span>
         </div>
 
         <p className="sub" style={{ marginTop: 16 }}>
