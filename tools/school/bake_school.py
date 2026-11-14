@@ -22,9 +22,9 @@ SRC, OUT = sys.argv[1], sys.argv[2]
 os.makedirs(OUT + '/tex', exist_ok=True)
 
 # ---- placement -------------------------------------------------------------
-SCALE = 0.9
+SCALE = 1.0
 GATE_MODEL = np.array([0.0, 0.0, -257.6])
-GATE_WORLD = np.array([-38.0, 0.03, -47.0])
+GATE_WORLD = np.array([-29.0, 0.03, -47.0])
 P = np.eye(4)
 P[:3, :3] = SCALE * np.diag([-1.0, 1.0, -1.0])
 P[:3, 3] = GATE_WORLD - SCALE * np.diag([-1.0, 1.0, -1.0]) @ GATE_MODEL
@@ -297,6 +297,10 @@ open(OUT + '/school.bin', 'wb').write(buf)
 # ---- colliders ---------------------------------------------------------------
 def base(n): return re.sub(r'(\(Clone\))?__-?\d+$', '', n).strip()
 NO_COLLIDE = re.compile(r'ceiling|petal|flower|paper|poster|decal|light|lamp|vent|fan|curtain|clock|photo|picture|rug|carpet|shoe|trash|pencil|hologram|water|leaves|grass|moss|frame|sign|banner|sticker|cable|wire|chain|spray|bubble|steam|smoke|fire|glow|ray|particle|audio|trigger|ground ?petals|bunting|flag|plant|bush|hedge|tree', re.I)
+# Door leaves and frames are closed in the exported scene (and glass doors are see-through), so they
+# must not block the doorway. Wall pieces that contain a doorway keep their real shape (not a solid box).
+DOOR_LEAF = re.compile(r'door|entrance_?column', re.I)
+DOOR_KEEP = re.compile(r'wall|cabinet|washer|tank|mat\b|doormat', re.I)
 STAIR = re.compile(r'^(Staircase|Stair Floor|GaziboStairs)(?!_)', re.I)
 boxes = []; meshes_c = []
 def node_obb(ni):
@@ -345,6 +349,15 @@ for pid, ni, M in inst:
             meshes_c.append(dict(v=[round(float(x), 3) for x in w.reshape(-1)], i=[int(x) for x in idx]))
         nb['stairs'] += 1; continue
     if NO_COLLIDE.search(nm): nb['skipped'] += 1; continue
+    is_door = bool(re.search('door', nm, re.I))
+    if is_door and not DOOR_KEEP.search(nm): nb['door'] += 1; continue
+    if is_door and re.search('wall', nm, re.I):
+        # wall with an opening: use its triangles so the doorway stays open
+        for p in g['meshes'][nodes[ni]['mesh']]['primitives']:
+            pos = G.accessor(p['attributes']['POSITION']).astype(np.float64); idx = G.accessor(p['indices']).astype(np.uint32).reshape(-1)
+            w = (M @ np.c_[pos, np.ones(len(pos))].T).T[:, :3]
+            meshes_c.append(dict(v=[round(float(x), 2) for x in w.reshape(-1)], i=[int(x) for x in idx]))
+        nb['doorwall'] += 1; continue
     lo_, hi_ = node_obb(ni)
     ext_ = (hi_ - lo_) * np.linalg.norm(M[:3, :3], axis=0)
     if ext_.prod() > 40 and ext_.min() > 0.8:

@@ -16,6 +16,7 @@ const door = (cx: number, w = 2.2): Gap => [cx - w / 2, cx + w / 2]
 export function buildTown(b: WorldBuilder) {
   // Ground: big grass slab, top surface at y = 0
   b.box(0, -1, 0, 400, 1, 400, C.grass)
+  b.box(0, -1, -210, 400, 1, 20, C.grass) // the school grounds reach past the old north edge
 
   roads(b)
   commercial(b)
@@ -29,7 +30,7 @@ function roads(b: WorldBuilder) {
 
   road(-200, -35, 200, -25) // R1
   road(-200, 55, 200, 65) // R2
-  road(35, -200, 45, 200) // R3
+  road(35, -35, 45, 200) // R3 (ends at R1: the school grounds start north of it)
   road(-105, -25, -95, 55) // R4 (north part, joins R1 and R2)
   road(-105, 65, -95, 200)
   road(115, -25, 125, 55) // R5
@@ -41,7 +42,6 @@ function roads(b: WorldBuilder) {
   }
   // Sidewalks along R3 (west and east sides)
   for (const [xa, xb] of [[33, 35], [45, 47]]) {
-    walk(xa, -200, xb, -37)
     walk(xa, -23, xb, 53)
     walk(xa, 67, xb, 200)
   }
@@ -53,7 +53,7 @@ function roads(b: WorldBuilder) {
     b.rect(x, 0.05, -30.12, x + 4, 0.01, -29.88, C.roadLine, false)
     b.rect(x, 0.05, 59.88, x + 4, 0.01, 60.12, C.roadLine, false)
   }
-  for (let z = -196; z < 196; z += 8) {
+  for (let z = -28; z < 196; z += 8) {
     if (inIntersection(z + 2, [-30, 60])) continue
     b.rect(39.88, 0.05, z, 40.12, 0.01, z + 4, C.roadLine, false)
   }

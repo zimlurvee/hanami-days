@@ -5,8 +5,10 @@ import { buildPublic } from './public'
 import { buildDistricts } from './districts'
 
 export const WORLD_HALF = 200
+/** The map reaches this much further north (z < -200), where the school grounds end. The server uses the same limit. */
+export const WORLD_NORTH_EXTRA = 20
 /** Just inside the school gate, facing south toward the road. */
-export const PLAYER_SPAWN = { x: -38, y: 0.5, z: -51 }
+export const PLAYER_SPAWN = { x: -29, y: 0.5, z: -51 }
 
 let cached: WorldBuilder | null = null
 

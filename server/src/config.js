@@ -42,6 +42,8 @@ export const PLAYER = { nameMax: 20, sizeMin: 0.7, sizeMax: 1.3 }
 
 export const WORLD = {
   half: 199,
+  /** The map reaches this far north (z >= zMin); the school grounds extend past the old edge. */
+  zMin: -219,
   spawn: { x: -60, y: 0.5, z: -47 },
 }
 

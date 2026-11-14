@@ -277,7 +277,7 @@ export class Room {
       return
     }
     if (!PROPS.kinds.includes(m.kind) || ![m.x, m.y, m.z, m.yaw].every(isNum)) return
-    if (Math.abs(m.x) > WORLD.half || Math.abs(m.z) > WORLD.half || m.y < -2 || m.y > 30) return
+    if (Math.abs(m.x) > WORLD.half || m.z < WORLD.zMin || m.z > WORLD.half || m.y < -2 || m.y > 30) return
     if (!p.propLimiter.allow()) return
     if (this.props.length >= PROPS.maxPerRoom) {
       this.send(p, { t: 'err', code: 'PROPS_FULL', msg: 'This room has too many props.' })

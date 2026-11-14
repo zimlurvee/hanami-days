@@ -7,32 +7,32 @@ import { WorldBuilder } from './builder'
  * named zones (HUD location, missions), minimap blocks, and a keep-out area so
  * the random tree scatter does not plant trees inside the grounds.
  *
- * The model is placed by tools/school/bake_school.py: front gate at (-38, -47)
- * facing south, grounds run north to z = -199.
+ * The model is placed by tools/school/bake_school.py: front gate at (-29, -47)
+ * facing south, grounds run north to about z = -214 (the map extends to -220 there).
  */
 export function buildSchool(b: WorldBuilder) {
   // Minimap blocks (not drawn in 3D, no collision). Grass first so the buildings sit on top of it.
   const block = (x0: number, z0: number, x1: number, z1: number, color: number) =>
     b.rect(x0, 0, z0, x1, 0.1, z1, color, false, false)
-  block(-108, -200, 44, -44, 0x8fcf6d)
-  block(-90, -192, -52, -155, 0x6fa83a) // west field
-  block(1, -192, 38, -155, 0x6fa83a) // east field
-  block(-83, -146, 7, -138, 0xc2563b) // running track
-  block(-81, -137, 4, -59, 0xb9bcc0) // main building and courtyard
-  block(-33, -195, -7, -147, 0xc77d97) // gymnasium
-  block(6, -127, 31, -84, 0x2f7fa6) // pool building
-  block(-107, -75, -80, -46, 0x6b8f3a) // hedge maze
+  block(-106.8, -217.0, 62.1, -43.7, 0x8fcf6d)
+  block(-86.8, -208.1, -44.6, -167.0, 0x6fa83a) // west field
+  block(14.3, -208.1, 55.4, -167.0, 0x6fa83a) // east field
+  block(-79.0, -157.0, 21.0, -148.1, 0xc2563b) // running track
+  block(-76.8, -147.0, 17.7, -60.3, 0xb9bcc0) // main building and courtyard
+  block(-23.4, -211.4, 5.4, -158.1, 0xc77d97) // gymnasium
+  block(19.9, -135.9, 47.7, -88.1, 0x2f7fa6) // pool building
+  block(-105.7, -78.1, -75.7, -45.9, 0x6b8f3a) // hedge maze
 
-  b.zone('Japanese High School', -108, -200, 44, -44)
-  b.zone('School Entrance', -60, -62, -16, -44)
-  b.zone('Entrance Hall', -50, -76, -26, -58, -1, 6)
-  b.zone('School Building', -81, -137, 4, -58, -1, 6)
-  b.zone('School Courtyard', -57, -118, -11, -79, -1, 6)
-  b.zone('School Hallway', -81, -137, 4, -58, 2, 6)
-  b.zone('School Rooftop', -81, -137, 4, -58, 6.2, 30)
-  b.zone('Gymnasium', -33, -195, -7, -147)
-  b.zone('School Pool', 6, -127, 31, -84)
-  b.zone('Running Track', -83, -146, 7, -138)
-  b.zone('School Playground', -92, -195, 40, -137)
-  b.zone('Hedge Maze', -107, -75, -80, -46)
+  b.zone('Japanese High School', -106.8, -217.0, 62.1, -43.7)
+  b.zone('School Entrance', -53.4, -63.7, -4.6, -43.7)
+  b.zone('Entrance Hall', -42.3, -79.2, -15.7, -59.2, -1.11, 6.67)
+  b.zone('School Building', -76.8, -147.0, 17.7, -59.2, -1.11, 6.67)
+  b.zone('School Courtyard', -50.1, -125.9, 1.0, -82.6, -1.11, 6.67)
+  b.zone('School Hallway', -76.8, -147.0, 17.7, -59.2, 2.22, 6.67)
+  b.zone('School Rooftop', -76.8, -147.0, 17.7, -59.2, 6.89, 33.33)
+  b.zone('Gymnasium', -23.4, -211.4, 5.4, -158.1)
+  b.zone('School Pool', 19.9, -135.9, 47.7, -88.1)
+  b.zone('Running Track', -79.0, -157.0, 21.0, -148.1)
+  b.zone('School Playground', -89.0, -211.4, 57.7, -147.0)
+  b.zone('Hedge Maze', -105.7, -78.1, -75.7, -45.9)
 }

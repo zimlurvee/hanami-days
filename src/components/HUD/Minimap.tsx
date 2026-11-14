@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { getWorld, WORLD_HALF } from '@/game/world'
+import { getWorld, WORLD_HALF, WORLD_NORTH_EXTRA } from '@/game/world'
 import { runtime } from '@/game/runtime'
 
 const PX_PER_M = 2 // resolution of the pre-rendered map
@@ -10,13 +10,15 @@ const hex = (c: number) => '#' + c.toString(16).padStart(6, '0')
 function renderMap(): HTMLCanvasElement {
   const size = WORLD_HALF * 2 * PX_PER_M
   const cv = document.createElement('canvas')
-  cv.width = cv.height = size
+  cv.width = size
+  cv.height = size + WORLD_NORTH_EXTRA * PX_PER_M // the map reaches further north, where the school grounds end
   const g = cv.getContext('2d')!
   const w = getWorld()
   const px = (v: number) => (v + WORLD_HALF) * PX_PER_M
 
   g.fillStyle = '#9bdc7a'
-  g.fillRect(0, 0, size, size)
+  g.fillRect(0, 0, cv.width, cv.height)
+  g.translate(0, WORLD_NORTH_EXTRA * PX_PER_M)
 
   const boxes = w.boxes.filter((b) => b.y > -0.5).sort((a, b) => a.y + a.h - (b.y + b.h))
   for (const b of boxes) {
@@ -66,7 +68,7 @@ export function Minimap({ size = 160 }: { size?: number }) {
       g.drawImage(
         map,
         (x + WORLD_HALF) * PX_PER_M - srcSize / 2,
-        (z + WORLD_HALF) * PX_PER_M - srcSize / 2,
+        (z + WORLD_HALF + WORLD_NORTH_EXTRA) * PX_PER_M - srcSize / 2,
         srcSize,
         srcSize,
         -S / 2,

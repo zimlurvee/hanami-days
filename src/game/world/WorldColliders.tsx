@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useRapier } from '@react-three/rapier'
-import { getWorld, WORLD_HALF } from './index'
+import { getWorld, WORLD_HALF, WORLD_NORTH_EXTRA } from './index'
 import { isGameActive } from '@/stores/appStore'
 
 /**
@@ -57,10 +57,11 @@ export function WorldColliders() {
     const H = WORLD_HALF
     const wall = (x: number, z: number, hx: number, hz: number) =>
       world.createCollider(rapier.ColliderDesc.cuboid(hx, 15, hz).setTranslation(x, 15, z), body)
-    wall(0, -H - 1, H + 2, 1)
+    const N = H + WORLD_NORTH_EXTRA
+    wall(0, -N - 1, H + 2, 1)
     wall(0, H + 1, H + 2, 1)
-    wall(-H - 1, 0, 1, H + 2)
-    wall(H + 1, 0, 1, H + 2)
+    wall(-H - 1, (H - N) / 2, 1, (H + N) / 2 + 2)
+    wall(H + 1, (H - N) / 2, 1, (H + N) / 2 + 2)
 
     return () => {
       cancelled = true

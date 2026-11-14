@@ -10,7 +10,7 @@ import { clamp, isNum } from './validation.js'
  */
 export function applyMove(p, m, now = Date.now()) {
   if (![m.x, m.y, m.z, m.yaw].every(isNum)) return { ok: false, reason: 'bad' }
-  if (Math.abs(m.x) > WORLD.half || Math.abs(m.z) > WORLD.half || m.y < -30 || m.y > 80) {
+  if (Math.abs(m.x) > WORLD.half || m.z < WORLD.zMin || m.z > WORLD.half || m.y < -30 || m.y > 80) {
     return { ok: false, reason: 'bounds' }
   }
 
