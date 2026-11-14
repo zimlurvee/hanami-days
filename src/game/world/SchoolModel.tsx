@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { runtime } from '@/game/runtime'
 import { useSettings } from '@/stores/settingsStore'
+import { SCHOOL_BUILDINGS } from './school'
 
 /**
  * The school: "School Zimlurvee Blend" by Joaquito (School Creator V2, CC-BY 4.0).
@@ -17,6 +18,7 @@ const BASE = '/school/'
 const UNIT = 0.004 // chunk-local positions are stored as int16 in units of 4 mm (+-131 m)
 const PROP_DISTANCE = 55
 const FAR_DISTANCE = 230
+const ROOM_MARGIN = 5 // metres around a building within which its interior props are drawn
 
 interface Prim {
   m: number; n: number; ni: number; i32: number
@@ -73,7 +75,7 @@ async function build(withProps: boolean): Promise<Built | null> {
   // ---- group instances by material, area chunk and size class --------------
   const S = man.instStride
   const inst = new Float32Array(buf, man.instOff, man.instCount * S)
-  interface Grp { mat: number; gx: number; gz: number; small: boolean; items: number[]; nv: number; ni: number }
+  interface Grp { mat: number; gx: number; gz: number; small: boolean; room: number; items: number[]; nv: number; ni: number }
   const groups = new Map<string, Grp>()
   for (let i = 0; i < man.instCount; i++) {
     const o = i * S
@@ -82,9 +84,15 @@ async function build(withProps: boolean): Promise<Built | null> {
     if (small && !withProps) continue
     const gx = Math.floor(inst[o + 2] / man.chunk)
     const gz = Math.floor(inst[o + 4] / man.chunk)
-    const key = `${pr.m}|${gx}|${gz}|${small ? 1 : 0}`
+    // Small props inside a building are only drawn while the player is near that building
+    let room = -1
+    if (small) {
+      const ix = inst[o + 2], iy = inst[o + 3], iz = inst[o + 4]
+      room = SCHOOL_BUILDINGS.findIndex((bd) => ix > bd.x0 && ix < bd.x1 && iz > bd.z0 && iz < bd.z1 && iy < bd.top)
+    }
+    const key = `${pr.m}|${gx}|${gz}|${small ? 1 : 0}|${room}`
     let g = groups.get(key)
-    if (!g) groups.set(key, (g = { mat: pr.m, gx, gz, small, items: [], nv: 0, ni: 0 }))
+    if (!g) groups.set(key, (g = { mat: pr.m, gx, gz, small, room, items: [], nv: 0, ni: 0 }))
     g.items.push(i); g.nv += pr.n; g.ni += pr.ni
   }
 
@@ -170,7 +178,7 @@ async function build(withProps: boolean): Promise<Built | null> {
     mesh.updateMatrix()
     mesh.receiveShadow = true
     const bs = geo.boundingSphere!
-    mesh.userData = { small: g.small, cx: ox + bs.center.x * UNIT, cz: oz + bs.center.z * UNIT, r: bs.radius * UNIT }
+    mesh.userData = { small: g.small, room: g.room, cx: ox + bs.center.x * UNIT, cz: oz + bs.center.z * UNIT, r: bs.radius * UNIT }
     root.add(mesh)
     meshes.push(mesh)
     if (++sinceYield >= 6) { sinceYield = 0; await tick() } // keep the game responsive while it builds
@@ -205,9 +213,14 @@ export function SchoolModel() {
     const px = runtime.player.x
     const pz = runtime.player.z
     for (const m of built.meshes) {
-      const u = m.userData as { small: boolean; cx: number; cz: number; r: number }
+      const u = m.userData as { small: boolean; room: number; cx: number; cz: number; r: number }
       const d = Math.hypot(u.cx - px, u.cz - pz) - u.r
-      m.visible = d < (u.small ? PROP_DISTANCE : FAR_DISTANCE)
+      let show = d < (u.small ? PROP_DISTANCE : FAR_DISTANCE)
+      if (show && u.room >= 0) {
+        const bd = SCHOOL_BUILDINGS[u.room]
+        show = px > bd.x0 - ROOM_MARGIN && px < bd.x1 + ROOM_MARGIN && pz > bd.z0 - ROOM_MARGIN && pz < bd.z1 + ROOM_MARGIN
+      }
+      m.visible = show
     }
   })
 

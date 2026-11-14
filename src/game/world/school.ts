@@ -10,6 +10,16 @@ import { WorldBuilder } from './builder'
  * The model is placed by tools/school/bake_school.py: front gate at (-29, -47)
  * facing south, grounds run north to about z = -214 (the map extends to -220 there).
  */
+/**
+ * Footprints of the big buildings (x0, z0, x1, z1) and the height below which things count as "inside".
+ * SchoolModel hides the small props of a building while the player is away from it (poor man's occlusion culling).
+ */
+export const SCHOOL_BUILDINGS = [
+  { name: 'School Building', x0: -76.8, z0: -147.0, x1: 17.7, z1: -59.2, top: 9 },
+  { name: 'Gymnasium', x0: -23.4, z0: -211.4, x1: 5.4, z1: -158.1, top: 12 },
+  { name: 'School Pool', x0: 19.9, z0: -135.9, x1: 47.7, z1: -88.1, top: 12 },
+]
+
 export function buildSchool(b: WorldBuilder) {
   // Minimap blocks (not drawn in 3D, no collision). Grass first so the buildings sit on top of it.
   const block = (x0: number, z0: number, x1: number, z1: number, color: number) =>

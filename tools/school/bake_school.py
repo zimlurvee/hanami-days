@@ -302,7 +302,7 @@ NO_COLLIDE = re.compile(r'ceiling|petal|flower|paper|poster|decal|light|lamp|ven
 DOOR_LEAF = re.compile(r'door|entrance_?column', re.I)
 DOOR_KEEP = re.compile(r'wall|cabinet|washer|tank|mat\b|doormat', re.I)
 STAIR = re.compile(r'^(Staircase|Stair Floor|GaziboStairs)(?!_)', re.I)
-boxes = []; meshes_c = []
+boxes = []; meshes_c = []; box_names = []; mesh_names = []; CUR = ['']
 def node_obb(ni):
     n = nodes[ni]; lo = np.array([1e9] * 3); hi = -lo
     for p in g['meshes'][n['mesh']]['primitives']:
@@ -329,7 +329,7 @@ def add_box(ni, M, minsize=0.0):
     if max(h) * 2 < minsize: return False
     if np.linalg.det(R) < 0: return False
     q = rot_to_quat(R); nq = math.sqrt(sum(x * x for x in q)); q = [x / nq for x in q]
-    boxes.append([round(float(x), 3) for x in [*c[:3], *h, *q]]); return True
+    boxes.append([round(float(x), 3) for x in [*c[:3], *h, *q]]); box_names.append(CUR[0]); return True
 nb = collections.Counter()
 for ni, M in [(ni, P @ W[ni]) for ni in colliders_src]:
     if add_box(ni, M): nb['proxy'] += 1
@@ -340,15 +340,22 @@ done_nodes = set()
 for pid, ni, M in inst:
     if ni in done_nodes: continue
     done_nodes.add(ni)
-    nm = base(nodes[ni].get('name', ''))
+    nm = base(nodes[ni].get('name', '')); CUR[0] = nm
     if STAIR.match(nm):
         # real geometry so the steps can be climbed
         for p in g['meshes'][nodes[ni]['mesh']]['primitives']:
             pos = G.accessor(p['attributes']['POSITION']).astype(np.float64); idx = G.accessor(p['indices']).astype(np.uint32).reshape(-1)
             w = (M @ np.c_[pos, np.ones(len(pos))].T).T[:, :3]
-            meshes_c.append(dict(v=[round(float(x), 3) for x in w.reshape(-1)], i=[int(x) for x in idx]))
+            meshes_c.append(dict(v=[round(float(x), 3) for x in w.reshape(-1)], i=[int(x) for x in idx])); mesh_names.append(nm)
         nb['stairs'] += 1; continue
     if NO_COLLIDE.search(nm): nb['skipped'] += 1; continue
+    if re.search(r'window|glass|pane', nm, re.I) and not re.search(r'wall|curtain', nm, re.I):
+        # Glass that reaches the floor is a glass door (the scene has them closed): keep it walkable.
+        lo_, hi_ = node_obb(ni)
+        cs = np.array([[x, y, z, 1.0] for x in (lo_[0], hi_[0]) for y in (lo_[1], hi_[1]) for z in (lo_[2], hi_[2])])
+        wy = (M @ cs.T).T[:, 1]
+        bot, hgt = wy.min(), wy.max() - wy.min()
+        if (bot % 4 < 0.35 or bot % 4 > 3.65) and hgt >= 1.7: nb['glassdoor'] += 1; continue
     is_door = bool(re.search('door', nm, re.I))
     if is_door and not DOOR_KEEP.search(nm): nb['door'] += 1; continue
     if is_door and re.search('wall', nm, re.I):
@@ -356,7 +363,7 @@ for pid, ni, M in inst:
         for p in g['meshes'][nodes[ni]['mesh']]['primitives']:
             pos = G.accessor(p['attributes']['POSITION']).astype(np.float64); idx = G.accessor(p['indices']).astype(np.uint32).reshape(-1)
             w = (M @ np.c_[pos, np.ones(len(pos))].T).T[:, :3]
-            meshes_c.append(dict(v=[round(float(x), 2) for x in w.reshape(-1)], i=[int(x) for x in idx]))
+            meshes_c.append(dict(v=[round(float(x), 2) for x in w.reshape(-1)], i=[int(x) for x in idx])); mesh_names.append(nm)
         nb['doorwall'] += 1; continue
     lo_, hi_ = node_obb(ni)
     ext_ = (hi_ - lo_) * np.linalg.norm(M[:3, :3], axis=0)
@@ -365,12 +372,13 @@ for pid, ni, M in inst:
         for p in g['meshes'][nodes[ni]['mesh']]['primitives']:
             pos = G.accessor(p['attributes']['POSITION']).astype(np.float64); idx = G.accessor(p['indices']).astype(np.uint32).reshape(-1)
             w = (M @ np.c_[pos, np.ones(len(pos))].T).T[:, :3]
-            meshes_c.append(dict(v=[round(float(x), 2) for x in w.reshape(-1)], i=[int(x) for x in idx]))
+            meshes_c.append(dict(v=[round(float(x), 2) for x in w.reshape(-1)], i=[int(x) for x in idx])); mesh_names.append(nm)
         nb['bigmesh'] += 1; continue
     if add_box(ni, M, 0.45): nb['box'] += 1
     else: nb['tiny'] += 1
 print('colliders', dict(nb), 'boxes', len(boxes), 'trimeshes', len(meshes_c))
 json.dump(dict(boxes=boxes, meshes=meshes_c), open(OUT + '/colliders.json', 'w'), separators=(',', ':'))
+if os.environ.get('SCHOOL_DEBUG'): json.dump(dict(boxes=box_names, meshes=mesh_names), open(OUT + '/../colliders_names.json', 'w'))
 
 # ---- manifest -----------------------------------------------------------------
 manifest = dict(materials=materials, prims=man_prims, instOff=inst_off, instCount=len(rows), instStride=17,

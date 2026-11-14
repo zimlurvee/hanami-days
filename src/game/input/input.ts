@@ -117,7 +117,17 @@ function onMouseDown(e: MouseEvent) {
   if (e.target !== canvasEl) return
   if (isMobile()) return
   dragging = true
-  canvasEl.requestPointerLock?.()
+  safeLock(canvasEl)
+}
+
+/** Pointer lock can be refused (e.g. right after Esc); that is harmless, so never let it surface as an error. */
+function safeLock(el: HTMLElement | null | undefined) {
+  try {
+    const r = el?.requestPointerLock?.() as unknown
+    if (r && typeof (r as Promise<void>).catch === 'function') (r as Promise<void>).catch(() => {})
+  } catch {
+    /* ignored */
+  }
 }
 
 function onMouseUp() {
@@ -171,7 +181,7 @@ export function attachInput(canvas: HTMLElement): () => void {
 /** Must be called from a user gesture (a click handler). */
 export function lockPointer() {
   if (isMobile()) return
-  canvasEl?.requestPointerLock?.()
+  safeLock(canvasEl)
 }
 
 export function releasePointer() {

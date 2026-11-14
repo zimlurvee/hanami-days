@@ -28,7 +28,13 @@
           d.textContent = 'Hanami Days failed to start.\nPlease send this message to the developer:\n\n' + msg;
         }
         window.addEventListener('error', function (e) { show((e.message || 'Error') + (e.filename ? '\n' + e.filename + ':' + e.lineno : '')); });
-        window.addEventListener('unhandledrejection', function (e) { show('Unhandled: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); });
+        window.addEventListener('unhandledrejection', function (e) {
+          var msg = String((e.reason && (e.reason.stack || e.reason.message)) || e.reason);
+          var root = document.getElementById('root');
+          // Once the game is on screen a stray rejection (pointer lock refused, a failed fetch...) is not a crash
+          if (/pointer ?lock/i.test(msg) || (root && root.childElementCount > 0)) { console.warn('Unhandled rejection ignored:', msg); return; }
+          show('Unhandled: ' + msg);
+        });
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
