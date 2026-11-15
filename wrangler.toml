@@ -12,5 +12,5 @@ tag = "v1"
 new_sqlite_classes = ["Hub"]
 
 [vars]
-# Leave empty to allow any website, or set to https://hanamidays.netlify.app
-ALLOWED_ORIGINS = ""
+# Only the game site may open a WebSocket to this server (comma separate to add more).
+ALLOWED_ORIGINS = "https://hanamidays.netlify.app"
