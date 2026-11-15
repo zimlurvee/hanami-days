@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useT, useLang } from '@/stores/langStore'
 import { LANGS } from '@/i18n/strings'
 import { MISSIONS, useMissions } from '@/stores/missionsStore'
+import { ITEMS, useItems } from '@/stores/itemsStore'
 import { useApp } from '@/stores/appStore'
 import { useWorld, type Weather } from '@/stores/worldStore'
 import { lockPointer } from '@/game/input/input'
@@ -25,7 +26,7 @@ export function formatHour(h: number) {
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
 }
 
-type Page = 'home' | 'status' | 'weather' | 'props' | 'room' | 'missions' | 'lang'
+type Page = 'home' | 'status' | 'weather' | 'props' | 'room' | 'missions' | 'shop' | 'lang'
 
 /**
  * The in-game MENU, laid out like the original: a row of section buttons, the
@@ -74,6 +75,7 @@ export function GameMenu() {
           <button className="pill" onClick={() => { setPaused(false); setCharaEdit('chara'); lockPointer() }}>{t('charaEdit')}</button>
           <button className="pill" aria-pressed={page === 'props'} onClick={() => setPage(page === 'props' ? 'home' : 'props')}>{t('props')}</button>
           <button className="pill" aria-pressed={page === 'missions'} onClick={() => setPage(page === 'missions' ? 'home' : 'missions')}>{t('missions')}</button>
+          <button className="pill" aria-pressed={page === 'shop'} onClick={() => setPage(page === 'shop' ? 'home' : 'shop')}>🛍 Shop</button>
           <button className="pill" aria-pressed={page === 'lang'} onClick={() => setPage(page === 'lang' ? 'home' : 'lang')}>{t('language')}</button>
           <button className="pill" aria-pressed={page === 'weather'} onClick={() => setPage(page === 'weather' ? 'home' : 'weather')}>{t('weather')}</button>
           {room && <button className="pill" aria-pressed={page === 'room'} onClick={() => setPage(page === 'room' ? 'home' : 'room')}>{t('room')}</button>}
@@ -121,6 +123,8 @@ export function GameMenu() {
             </div>
           </div>
         )}
+
+        {page === 'shop' && <ShopPage />}
 
         {page === 'lang' && (
           <div className="box">
@@ -253,6 +257,32 @@ export function GameMenu() {
         <p className="sub" style={{ margin: '10px 0 0' }}>
           {room ? 'The world keeps running for everyone else while this menu is open.' : 'The world is frozen while this menu is open.'}
         </p>
+      </div>
+    </div>
+  )
+}
+
+function ShopPage() {
+  const money = useMissions((s) => s.money)
+  const spend = useMissions((s) => s.spend)
+  const owned = useItems((s) => s.owned)
+  const grant = useItems((s) => s.grant)
+  return (
+    <div className="box">
+      <div className="boxtitle">Shop</div>
+      <p className="sub">Money: <b>¥{money}</b>. Earn more from missions and the gold coins near the Area Move spots (¥50 each, they respawn). Bought items are worn in Chara Edit → Item.</p>
+      <div className="plist" style={{ maxHeight: 320 }}>
+        {ITEMS.map((it) => {
+          const has = owned.includes(it.id)
+          return (
+            <div className="row" key={it.id}>
+              <span>{it.icon} {it.label}</span>
+              {has ? <span className="val">Owned</span> : (
+                <button className="btn small" disabled={money < it.price} onClick={() => { if (spend(it.price)) grant(it.id) }}>¥{it.price}</button>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

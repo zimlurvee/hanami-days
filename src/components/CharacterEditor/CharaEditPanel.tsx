@@ -36,6 +36,7 @@ export function CharaEditPanel() {
   const [zoom, setZoom] = useState(runtime.cam.zoom)
   const [pose, setPose] = useState(runtime.pose)
   const worn = useItems((s) => s.worn)
+  const owned = useItems((s) => s.owned)
   const toggleItem = useItems((s) => s.toggle)
   const t = useT()
   // Walking or jumping clears the pose in the game: keep the highlighted button in step
@@ -109,9 +110,10 @@ export function CharaEditPanel() {
           <>
             <div className="boxtitle">{t('item')}</div>
             <div className="agrid">
-              {ITEMS.map((it) => (
+              {ITEMS.filter((it) => owned.includes(it.id)).map((it) => (
                 <button key={it.id} className={`abtn ${worn.includes(it.id) ? 'on' : ''}`} onClick={() => toggleItem(it.id)}>{it.icon} {it.label}</button>
               ))}
+              {owned.length === 0 && <span className="sub">Nothing yet. Buy accessories in Menu → Shop.</span>}
             </div>
             <p className="sub">{t('putOn')} (max {MAX_ITEMS}). Other players see what you wear. Objects to place in the world are in Menu → Props.</p>
           </>
