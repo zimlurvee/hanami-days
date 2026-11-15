@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export type Screen = 'menu' | 'settings' | 'credits' | 'multiplayer' | 'characterEdit' | 'playing'
 
-export type CharaTab = 'camera' | 'chara' | 'pose' | 'item'
+export type CharaTab = 'camera' | 'chara' | 'pose'
 
 interface AppState {
   screen: Screen

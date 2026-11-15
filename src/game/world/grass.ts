@@ -47,7 +47,7 @@ export function getGrassTexture(): THREE.Texture {
   return tex
 }
 
-/** Shader patch: grass-coloured, upward-facing surfaces get the texture in world space (every 4 m). */
+/** Shader patch: grass-coloured, upward-facing surfaces get the texture in world space (every ~6.7 m). */
 export function patchGrass(shader: { uniforms: Record<string, { value: unknown }>; vertexShader: string; fragmentShader: string }) {
   shader.uniforms.uGrass = { value: getGrassTexture() }
   shader.vertexShader = shader.vertexShader
@@ -71,8 +71,8 @@ export function patchGrass(shader: { uniforms: Record<string, { value: unknown }
       `#include <color_fragment>
       {
         float grassy = step(diffuseColor.r * 1.1, diffuseColor.g) * step(diffuseColor.b * 1.25, diffuseColor.g) * step(0.9, vGUp);
-        vec3 gt = texture2D(uGrass, vGWorld.xz * 0.25).rgb * 1.75;
-        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * gt, grassy);
+        vec3 gt = texture2D(uGrass, vGWorld.xz * 0.15).rgb * 1.2;
+        diffuseColor.rgb = mix(diffuseColor.rgb, gt, grassy);
       }`,
     )
 }

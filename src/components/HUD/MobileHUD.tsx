@@ -114,7 +114,6 @@ export function MobileHUD() {
         {inRoom && <Btn cls="round" label="" icon="💬" onPress={() => setChatOpen(true)} />}
       </div>
       <div className="mtime">{formatHour(hour)} ¥{money}</div>
-      <Btn cls="round mitem" label="ITEM" icon="🎒" onPress={() => setCharaEdit('item')} />
       <Btn cls="pill mcharaedit" label="Chara Edit" onPress={() => setCharaEdit('chara')} />
 
       <div className="mtr">

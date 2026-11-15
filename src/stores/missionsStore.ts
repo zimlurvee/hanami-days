@@ -24,7 +24,6 @@ export const MISSIONS: Mission[] = [
   { id: 'schoolpool', title: 'Visit the school pool', reward: 300, visit: ['School Pool'] },
   { id: 'pose', title: 'Strike a pose', reward: 200 },
   { id: 'prop', title: 'Place a prop', reward: 200 },
-  { id: 'item', title: 'Wear an accessory', reward: 200 },
   { id: 'chat', title: 'Say hello in a room', reward: 200 },
   { id: 'friend', title: 'Play with someone else online', reward: 500 },
 ]

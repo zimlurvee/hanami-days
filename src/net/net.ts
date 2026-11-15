@@ -4,7 +4,6 @@ import { useWorld, type Weather } from '@/stores/worldStore'
 import { useCharacter } from '@/stores/characterStore'
 import { runtime } from '@/game/runtime'
 import { useMissions } from '@/stores/missionsStore'
-import { useItems } from '@/stores/itemsStore'
 import { useProps, type Prop, type PropKind } from '@/stores/propsStore'
 
 export interface RoomInfo {
@@ -120,7 +119,7 @@ const send = (m: object) => {
 
 function profile() {
   const c = useCharacter.getState()
-  return { name: loadName(), character: c.model, size: c.size, items: useItems.getState().worn }
+  return { name: loadName(), character: c.model, size: c.size, items: [] }
 }
 
 export function loadName(): string {
@@ -320,7 +319,7 @@ export function teleportTo(x: number, y: number, z: number) {
 }
 export const sendAppearance = () => {
   const c = useCharacter.getState()
-  send({ t: 'appearance', character: c.model, size: c.size, items: useItems.getState().worn })
+  send({ t: 'appearance', character: c.model, size: c.size, items: [] })
 }
 export const hostAction = (a: string, extra: object = {}) => send({ t: 'host', a, ...extra })
 
@@ -342,7 +341,6 @@ export function inviteLink(code: string) {
   return `${location.origin}${location.pathname}?room=${code}`
 }
 
-useItems.subscribe((s, prev) => { if (isOnline() && s.worn !== prev.worn) sendAppearance() })
 
 // Tell others when we change character / size while online
 useCharacter.subscribe((s, prev) => {

@@ -15,6 +15,7 @@ export function CreditsScreen() {
           <li>Cherry tree model: "NEW Cherry Tree" bundled by funguy (credit funguy / Dogiloh68), from the Yandere Simulator Fanon wiki</li>
           <li>Character emote animations: "Satomi Makise animations" by S0ul2450Official, from the Yandere Simulator Fanon wiki (Texture Storage / RefNames), converted and retargeted for this game</li>
           <li>This work is based on <a href="https://www.mediafire.com/file/wh1kkgnypsu7ryy/School_Creator_v2.zip/file" target="_blank" rel="noreferrer">"School Zimlurvee Blend"</a> (School Creator V2) by <a href="https://discord.com/invite/98sJVEN5bX" target="_blank" rel="noreferrer">Joaquito</a>, licensed under <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC-BY-4.0</a>. Textures resized and packed, the model rotated, scaled and placed in the town</li>
+          <li>Grass ground texture "NewGrass_2" from the same School Creator V2 pack by <a href="https://discord.com/invite/98sJVEN5bX" target="_blank" rel="noreferrer">Joaquito</a>, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC-BY-4.0</a></li>
           <li>Suburban and industrial buildings: City Kit Suburban and City Kit Industrial by Kenney (kenney.nl), CC0</li>
           <li>Font: M PLUS Rounded 1c (SIL Open Font License)</li>
         </ul>

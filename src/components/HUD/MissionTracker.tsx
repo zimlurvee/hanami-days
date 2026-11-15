@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { runtime } from '@/game/runtime'
 import { useApp } from '@/stores/appStore'
-import { useItems } from '@/stores/itemsStore'
 import { MISSIONS, useMissions } from '@/stores/missionsStore'
 import { useNet } from '@/net/net'
 
@@ -14,7 +13,6 @@ export function MissionTracker() {
       const hits: string[] = []
       for (const mi of MISSIONS) if (mi.visit?.includes(loc)) hits.push(mi.id)
       if (runtime.pose > 0) hits.push('pose')
-      if (useItems.getState().worn.length > 0) hits.push('item')
       const room = useNet.getState().room
       if (room && room.count >= 2) hits.push('friend')
       for (const h of hits) {

@@ -3,7 +3,6 @@ import { useCharacter } from '@/stores/characterStore'
 import { CHARACTERS } from '@/game/characters/models'
 import { runtime } from '@/game/runtime'
 import { useEffect, useState } from 'react'
-import { ITEMS, MAX_ITEMS, useItems } from '@/stores/itemsStore'
 import { useT } from '@/stores/langStore'
 import { CLIP_BASE, EMOTES, loadPack } from '@/game/characters/clips'
 
@@ -19,7 +18,6 @@ const TABS: { id: CharaTab; key: string }[] = [
   { id: 'camera', key: 'camera' },
   { id: 'chara', key: 'charaEdit' },
   { id: 'pose', key: 'pose' },
-  { id: 'item', key: 'item' },
 ]
 
 /**
@@ -35,9 +33,6 @@ export function CharaEditPanel() {
   const setModel = useCharacter((s) => s.setModel)
   const [zoom, setZoom] = useState(runtime.cam.zoom)
   const [pose, setPose] = useState(runtime.pose)
-  const worn = useItems((s) => s.worn)
-  const owned = useItems((s) => s.owned)
-  const toggleItem = useItems((s) => s.toggle)
   const t = useT()
   // Walking or jumping clears the pose in the game: keep the highlighted button in step
   useEffect(() => {
@@ -104,18 +99,6 @@ export function CharaEditPanel() {
               ))}
             </div>
             <p className="sub">Emotes use the Satomi Makise animation pack by S0ul2450Official (see Credits). Stand still and pick a pose. Walking or jumping ends it. Everyone in the room sees it. </p>
-          </>
-        )}
-        {tab === 'item' && (
-          <>
-            <div className="boxtitle">{t('item')}</div>
-            <div className="agrid">
-              {ITEMS.filter((it) => owned.includes(it.id)).map((it) => (
-                <button key={it.id} className={`abtn ${worn.includes(it.id) ? 'on' : ''}`} onClick={() => toggleItem(it.id)}>{it.icon} {it.label}</button>
-              ))}
-              {owned.length === 0 && <span className="sub">Nothing yet. Buy accessories in Menu → Shop.</span>}
-            </div>
-            <p className="sub">{t('putOn')} (max {MAX_ITEMS}). Other players see what you wear. Objects to place in the world are in Menu → Props.</p>
           </>
         )}
       </div>
